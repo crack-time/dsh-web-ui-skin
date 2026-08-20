@@ -126,22 +126,34 @@ export function registerQuoteAsk(ctx: ClientContext): void {
   let pendingQuestion = ''
   let questionEl: HTMLTextAreaElement | null = null
 
-  /** Safely resolve the current session id (loose cast per plugin convention). */
+  /** Safely resolve the current session id.
+   *  Uses direct property access (NOT ctx.get) because 'sessions' is not in
+   *  the runtime inject list; ctx.get() would be blocked by the inject guard.
+   *  This matches the proven pattern in archive.tsx. */
   function currentSessionId(): string | undefined {
     try {
-      const sessions = (ctx as unknown as { get?: (k: string) => unknown }).get?.('sessions') as SessionsFacade | undefined
+      const sessions = (ctx as unknown as { sessions?: SessionsFacade }).sessions
       return sessions?.list?.()?.getSnapshot?.()?.current
-    } catch {
+    } catch (e) {
+      console.error('[quote-ask] currentSessionId failed:', e)
       return undefined
     }
   }
 
-  /** Resolve the composer shell for the given session. */
+  /** Resolve the composer shell for the given session.
+   *  Tries ctx.get('conversation') first (it IS in inject), falls back to
+   *  direct property access for resilience across rc versions. */
   function shellFor(sessionId: string): ComposerShell | undefined {
     try {
-      const conv = (ctx as unknown as { get?: (k: string) => unknown }).get?.('conversation') as ConversationFacade | undefined
-      return conv?.input?.shell?.(sessionId)
-    } catch {
+      // Primary: ctx.get (conversation is in runtime inject)
+      const viaGet = (ctx as unknown as { get?: (k: string) => unknown }).get?.('conversation') as ConversationFacade | undefined
+      const shell = viaGet?.input?.shell?.(sessionId)
+      if (shell) return shell
+      // Fallback: direct property access
+      const viaProp = (ctx as unknown as { conversation?: ConversationFacade }).conversation
+      return viaProp?.input?.shell?.(sessionId)
+    } catch (e) {
+      console.error('[quote-ask] shellFor failed:', e)
       return undefined
     }
   }
@@ -171,13 +183,23 @@ export function registerQuoteAsk(ctx: ClientContext): void {
   /** Submit: append blockquote + question to the composer draft and focus. */
   function submitQuestion(question: string) {
     const sid = currentSessionId()
-    if (!sid) { closeDialog(); return }
+    if (!sid) {
+      console.error('[quote-ask] submit aborted: no session id')
+      closeDialog()
+      return
+    }
     const shell = shellFor(sid)
-    if (!shell?.state?.getSnapshot || !shell.setDraft) { closeDialog(); return }
+    if (!shell?.state?.getSnapshot || !shell.setDraft) {
+      console.error('[quote-ask] submit aborted: shell unavailable', { sid, shell })
+      closeDialog()
+      return
+    }
     const current = shell.state.getSnapshot().draft ?? ''
     const quote = toBlockquote(pendingText.slice(0, MAX_QUOTE_CHARS))
     const sep = current.length > 0 ? '\n\n' : ''
-    shell.setDraft(current + sep + quote + '\n\n' + question)
+    const newDraft = current + sep + quote + '\n\n' + question
+    console.log('[quote-ask] setDraft:', { sid, draftLen: newDraft.length, preview: newDraft.slice(0, 120) })
+    shell.setDraft(newDraft)
     // Best-effort focus of the composer textarea.
     const ta = document.querySelector('.uV2eYG_input') as HTMLTextAreaElement | null
     if (ta) {
