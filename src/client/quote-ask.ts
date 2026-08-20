@@ -46,9 +46,13 @@ function toPreviewLines(text: string): Array<{ number: number; text: string }> {
   return text.split('\n').map((t, i) => ({ number: i + 1, text: t }))
 }
 
-/** Build a markdown blockquote preserving inner newlines. */
+/** Wrap the quoted text in 「」 delimiters for visual cohesion in the textarea.
+ *  The model understands 「...」 as quoted/reference content. */
 function toBlockquote(text: string): string {
-  return '> ' + text.replace(/\n/g, '\n> ')
+  const trimmed = text.length > MAX_QUOTE_CHARS
+    ? text.slice(0, MAX_QUOTE_CHARS) + '\n…'
+    : text
+  return '「' + trimmed.replace(/\n/g, '\n') + '」'
 }
 
 /** Dialog body: quoted preview + question textarea + action buttons.
