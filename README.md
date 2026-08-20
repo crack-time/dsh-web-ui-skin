@@ -54,10 +54,6 @@
 ### 输入框 @ 文件/会话引用（已移除——由 dsh 原生提供）
 - dsh rc.8 起，原生 `@` 菜单支持引用文件和会话；皮肤曾自带的 @ 文件提及实现（`GET /mention/files` 路由 + 自定义 `@` 触发源 + Backspace 整词删除）已删除，避免与原生功能冲突。
 
-### 选中回复追问（皮肤扩展）
-- 交互同型 ChatGPT 的「Ask ChatGPT」：在助手回复里选中一段文字 → 选区旁浮现原生风格「追问」按钮 → 点击弹出原生 Modal，顶部以 ReadBlock 展示所选片段预览，下方输入问题 → 确定后将「> 引用块 + 你的问题」填入输入框草稿（不自动发送），供你审阅编辑后回车发出。
-- UI 完全复用 `@deepseek-ai/dsh-client-ui-primitives` 的原生组件（Modal/Button/ReadBlock/Tooltip），只吃 `--dsw-*` 设计令牌，明暗主题、系统偏好、皮肤玻璃主题下均与原生对话 UI 视觉一致。
-- 纯客户端实现，无 host 路由；通过 `conversation.input.shell(id).setDraft(...)` 写入草稿（与皮肤其他扩展同一权威路径）。
 
 ## 安装
 
