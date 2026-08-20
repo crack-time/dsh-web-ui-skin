@@ -46,14 +46,6 @@ function toPreviewLines(text: string): Array<{ number: number; text: string }> {
   return text.split('\n').map((t, i) => ({ number: i + 1, text: t }))
 }
 
-/** Wrap the quoted text in 「」 delimiters for visual cohesion in the textarea.
- *  The model understands 「...」 as quoted/reference content. */
-function toBlockquote(text: string): string {
-  const trimmed = text.length > MAX_QUOTE_CHARS
-    ? text.slice(0, MAX_QUOTE_CHARS) + '\n…'
-    : text
-  return '「' + trimmed.replace(/\n/g, '\n') + '」'
-}
 
 /** Dialog body: quoted preview + question textarea + action buttons.
  *  The textarea DOM element is stored in the outer closure (questionEl) so
@@ -143,13 +135,13 @@ export function registerQuoteAsk(ctx: ClientContext): void {
     }
   }
 
-  /** Resolve the composer shell for the given session. */
-  function shellFor(sessionId: string): ComposerShell | undefined {
+  /** Resolve the raw composer shell (with insertReference) for the given session. */
+  function shellFor(sessionId: string): any | undefined {
     try {
-      const viaGet = (ctx as unknown as { get?: (k: string) => unknown }).get?.('conversation') as ConversationFacade | undefined
+      const viaGet = (ctx as unknown as { get?: (k: string) => unknown }).get?.('conversation') as any | undefined
       const shell = viaGet?.input?.shell?.(sessionId)
       if (shell) return shell
-      const viaProp = (ctx as unknown as { conversation?: ConversationFacade }).conversation
+      const viaProp = (ctx as unknown as { conversation?: any }).conversation
       return viaProp?.input?.shell?.(sessionId)
     } catch (e) {
       console.error('[quote-ask] shellFor failed:', e)
@@ -168,7 +160,7 @@ export function registerQuoteAsk(ctx: ClientContext): void {
     questionEl = null
   }
 
-  /** Submit: append blockquote + question to the composer draft and focus. */
+  /** Submit: insert a native reference chip + question text into the composer. */
   function submitQuestion(question: string) {
     const sid = currentSessionId()
     if (!sid) {
@@ -176,16 +168,39 @@ export function registerQuoteAsk(ctx: ClientContext): void {
       closeDialog(); return
     }
     const shell = shellFor(sid)
-    if (!shell?.state?.getSnapshot || !shell.setDraft) {
+    if (!shell) {
       console.error('[quote-ask] submit aborted: shell unavailable', { sid })
       closeDialog(); return
     }
-    const current = shell.state.getSnapshot().draft ?? ''
-    const quote = toBlockquote(pendingText.slice(0, MAX_QUOTE_CHARS))
-    const sep = current.length > 0 ? '\n\n' : ''
-    const newDraft = current + sep + quote + '\n\n' + question
-    console.log('[quote-ask] setDraft:', { sid, draftLen: newDraft.length })
-    shell.setDraft(newDraft)
+    const quoteText = pendingText.slice(0, MAX_QUOTE_CHARS)
+    // Build a reference object matching the shape expected by insertReference:
+    // { source, ref, label, appearance, clipboardText }
+    const ref = {
+      source: 'quote-ask',
+      ref: quoteText,
+      label: quoteText.length > 30 ? quoteText.slice(0, 27) + '…' : quoteText,
+      appearance: 'session', // renders as a compact chip (like the screenshot)
+      clipboardText: quoteText,
+    }
+    // span: { start, end } where the chip is inserted. We append at end of draft.
+    const draft = shell.state?.getSnapshot?.()?.draft ?? ''
+    const span = { start: draft.length, end: draft.length }
+    console.log('[quote-ask] insertReference:', { sid, refLabel: ref.label, span })
+    // Try insertReference first (native chip); fall back to setDraft if unavailable.
+    if (typeof shell.insertReference === 'function') {
+      shell.insertReference(ref, span)
+    } else if (typeof shell.setDraft === 'function') {
+      // Fallback: append as plain text
+      const quoted = '\n>' + quoteText.replace(/\n/g, '\n>') + '\n\n' + question
+      shell.setDraft(draft + quoted)
+    }
+    // Now type the question text after the chip
+    const updatedDraft = shell.state?.getSnapshot?.()?.draft ?? ''
+    if (question && typeof shell.setDraft === 'function') {
+      const sep = updatedDraft.length > 0 ? '\n\n' : ''
+      shell.setDraft(updatedDraft + sep + question)
+    }
+    // Focus composer
     const ta = document.querySelector('.uV2eYG_input') as HTMLTextAreaElement | null
     if (ta) {
       ta.focus()
