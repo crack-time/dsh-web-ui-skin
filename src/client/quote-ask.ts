@@ -123,33 +123,28 @@ export function registerQuoteAsk(ctx: ClientContext): void {
   let dialogRoot: Root | null = null
   let dialogHost: HTMLElement | null = null
   let pendingText = ''
-  let pendingQuestion = ''
   let questionEl: HTMLTextAreaElement | null = null
 
-  /** Safely resolve the current session id.
-   *  Uses direct property access (NOT ctx.get) because 'sessions' is not in
-   *  the runtime inject list; ctx.get() would be blocked by the inject guard.
-   *  This matches the proven pattern in archive.tsx. */
+  /** Resolve current session id via rc.8 sessions.selection store. */
   function currentSessionId(): string | undefined {
     try {
-      const sessions = (ctx as unknown as { sessions?: SessionsFacade }).sessions
-      return sessions?.list?.()?.getSnapshot?.()?.current
+      const sessions = (ctx as any).sessions
+      if (!sessions) return undefined
+      const selSnap = sessions.selection?.getSnapshot?.()
+      if (selSnap?.sessionId) return selSnap.sessionId
+      return undefined
     } catch (e) {
       console.error('[quote-ask] currentSessionId failed:', e)
       return undefined
     }
   }
 
-  /** Resolve the composer shell for the given session.
-   *  Tries ctx.get('conversation') first (it IS in inject), falls back to
-   *  direct property access for resilience across rc versions. */
+  /** Resolve the composer shell for the given session. */
   function shellFor(sessionId: string): ComposerShell | undefined {
     try {
-      // Primary: ctx.get (conversation is in runtime inject)
       const viaGet = (ctx as unknown as { get?: (k: string) => unknown }).get?.('conversation') as ConversationFacade | undefined
       const shell = viaGet?.input?.shell?.(sessionId)
       if (shell) return shell
-      // Fallback: direct property access
       const viaProp = (ctx as unknown as { conversation?: ConversationFacade }).conversation
       return viaProp?.input?.shell?.(sessionId)
     } catch (e) {
@@ -158,24 +153,13 @@ export function registerQuoteAsk(ctx: ClientContext): void {
     }
   }
 
-  /** Hide the floating trigger. */
   function hideTrigger() {
-    if (triggerBtn) {
-      triggerBtn.remove()
-      triggerBtn = null
-    }
+    if (triggerBtn) { triggerBtn.remove(); triggerBtn = null }
   }
 
-  /** Close the dialog and clean up its host. */
   function closeDialog() {
-    if (dialogRoot) {
-      dialogRoot.unmount()
-      dialogRoot = null
-    }
-    if (dialogHost) {
-      dialogHost.remove()
-      dialogHost = null
-    }
+    if (dialogRoot) { dialogRoot.unmount(); dialogRoot = null }
+    if (dialogHost) { dialogHost.remove(); dialogHost = null }
     pendingText = ''
     questionEl = null
   }
@@ -185,41 +169,33 @@ export function registerQuoteAsk(ctx: ClientContext): void {
     const sid = currentSessionId()
     if (!sid) {
       console.error('[quote-ask] submit aborted: no session id')
-      closeDialog()
-      return
+      closeDialog(); return
     }
     const shell = shellFor(sid)
     if (!shell?.state?.getSnapshot || !shell.setDraft) {
-      console.error('[quote-ask] submit aborted: shell unavailable', { sid, shell })
-      closeDialog()
-      return
+      console.error('[quote-ask] submit aborted: shell unavailable', { sid })
+      closeDialog(); return
     }
     const current = shell.state.getSnapshot().draft ?? ''
     const quote = toBlockquote(pendingText.slice(0, MAX_QUOTE_CHARS))
     const sep = current.length > 0 ? '\n\n' : ''
     const newDraft = current + sep + quote + '\n\n' + question
-    console.log('[quote-ask] setDraft:', { sid, draftLen: newDraft.length, preview: newDraft.slice(0, 120) })
+    console.log('[quote-ask] setDraft:', { sid, draftLen: newDraft.length })
     shell.setDraft(newDraft)
-    // Best-effort focus of the composer textarea.
     const ta = document.querySelector('.uV2eYG_input') as HTMLTextAreaElement | null
     if (ta) {
       ta.focus()
-      // Move caret to end so the user can continue editing naturally.
       try { ta.setSelectionRange(ta.value.length, ta.value.length) } catch {}
     }
     closeDialog()
   }
 
-  /** Show the floating trigger near the end of the current selection. */
   function showTrigger(rect: DOMRect) {
     hideTrigger()
     const btn = document.createElement('button')
     btn.type = 'button'
     btn.dataset.skinQuoteAsk = ''
     btn.setAttribute('aria-label', '追问选中内容')
-    // Match native ghost button sizing without depending on React here; the
-    // modal itself uses the real Button primitive. CSS token alignment keeps
-    // the trigger visually consistent with other native toolbar controls.
     Object.assign(btn.style, {
       position: 'fixed',
       left: Math.min(window.innerWidth - 48, Math.max(8, rect.right + 4)) + 'px',
@@ -244,7 +220,6 @@ export function registerQuoteAsk(ctx: ClientContext): void {
       const text = (sel?.toString() ?? '').trim()
       if (!text) return
       pendingText = text
-      // Mount the modal host lazily so we don't pollute the DOM when idle.
       if (!dialogHost) {
         dialogHost = document.createElement('div')
         dialogHost.dataset.skinQuoteAskDialog = ''
@@ -274,15 +249,11 @@ export function registerQuoteAsk(ctx: ClientContext): void {
     triggerBtn = btn
   }
 
-  /** Decide whether the selection qualifies for the trigger. */
   function evaluateSelection() {
     const sel = window.getSelection()
     if (!sel || sel.isCollapsed) { hideTrigger(); return }
-    const text = sel.toString().trim()
+    const text = (sel.toString() ?? '').trim()
     if (!text) { hideTrigger(); return }
-    // Anchor must sit inside the chat flow (assistant/user messages live in
-    // .Md3f7G_flowItem; generic bubbles in gdEzaW_bubble). Exclude the
-    // composer seat and input so selecting your own draft doesn't trigger.
     const anchor = sel.anchorNode
     if (!anchor) { hideTrigger(); return }
     const anchorEl = (anchor.nodeType === Node.TEXT_NODE ? anchor.parentElement : anchor) as Element | null
@@ -290,26 +261,19 @@ export function registerQuoteAsk(ctx: ClientContext): void {
     const inFlow = !!anchorEl.closest('.Md3f7G_flowItem, .gdEzaW_bubble')
     const inComposer = !!anchorEl.closest('[data-composer-seat], .uV2eYG_input, .uV2eYG_root')
     if (!inFlow || inComposer) { hideTrigger(); return }
-    // Position the trigger near the end of the selection range.
     try {
       const range = sel.getRangeAt(0)
       const rect = range.getBoundingClientRect()
       if (rect.width === 0 && rect.height === 0) { hideTrigger(); return }
       showTrigger(rect)
-    } catch {
-      hideTrigger()
-    }
+    } catch { hideTrigger() }
   }
 
   const onSelectionChange = () => evaluateSelection()
-  const onMouseUp = () => {
-    // Defer so the browser finalizes the selection before we measure it.
-    requestAnimationFrame(evaluateSelection)
-  }
+  const onMouseUp = () => requestAnimationFrame(evaluateSelection)
   document.addEventListener('selectionchange', onSelectionChange)
   document.addEventListener('mouseup', onMouseUp)
 
-  // Wire disposal into the cordis effect lifecycle so hot-reload cleans up.
   ctx.effect(() => () => {
     document.removeEventListener('selectionchange', onSelectionChange)
     document.removeEventListener('mouseup', onMouseUp)
