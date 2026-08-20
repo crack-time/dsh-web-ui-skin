@@ -53,7 +53,7 @@ const cardStore = createSkinCardStore()
 
 /** Client-side service dependencies (runtime inject declaration; the
  * package.json dsh.client.inject metadata mirrors this for the loader). */
-export const inject = ['locale', 'slots', 'remote', 'conversation']
+export const inject = ['sessions', 'locale', 'slots', 'remote', 'conversation']
 
 export function apply(ctx: ClientContext): void {
   const body = document.body
