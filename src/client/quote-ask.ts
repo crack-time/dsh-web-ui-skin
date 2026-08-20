@@ -51,30 +51,22 @@ function toBlockquote(text: string): string {
   return '> ' + text.replace(/\n/g, '\n> ')
 }
 
-/** Dialog body: quoted preview + question textarea + action buttons. */
+/** Dialog body: quoted preview + question textarea + action buttons.
+ *  The textarea DOM element is stored in the outer closure (questionEl) so
+ *  we can read its live .value at submit time regardless of React re-renders. */
 function QuoteAskDialog(props: {
   selectedText: string
   open: boolean
+  onMountTextarea: (el: HTMLTextAreaElement | null) => void
   onClose: () => void
-  onSubmit: (question: string) => void
+  onSubmit: () => void
 }) {
-  const { selectedText, open, onClose, onSubmit } = props
-  // Local question state lives in a ref-like closure; re-renders are cheap.
-  // We intentionally avoid useState to keep this module dependency-light;
-  // the outer render cycle re-mounts the component each time anyway.
-  let question = ''
-  const setTextarea = (el: HTMLTextAreaElement | null) => {
-    if (!el) return
-    // Reset value on mount so stale text from previous sessions doesn't leak.
-    el.value = ''
-    el.oninput = () => { question = el.value.slice(0, MAX_QUESTION_CHARS) }
-    // Focus on open for immediate typing.
-    if (open) requestAnimationFrame(() => el.focus())
-  }
+  const { selectedText, open, onMountTextarea, onClose, onSubmit } = props
   const handleSubmit = () => {
-    const q = question.trim()
-    if (!q) return
-    onSubmit(q)
+    // Read live value from the DOM element captured by onMountTextarea.
+    // This survives React re-renders because the element reference lives
+    // in the outer closure, not in component-local state.
+    onSubmit()
   }
   return createElement(
     Modal,
@@ -98,7 +90,7 @@ function QuoteAskDialog(props: {
       className: 'skin-quote-preview',
     }),
     createElement('textarea', {
-      ref: setTextarea,
+      ref: onMountTextarea,
       placeholder: '关于这段内容，你想问什么？',
       maxLength: MAX_QUESTION_CHARS,
       rows: 3,
@@ -131,6 +123,8 @@ export function registerQuoteAsk(ctx: ClientContext): void {
   let dialogRoot: Root | null = null
   let dialogHost: HTMLElement | null = null
   let pendingText = ''
+  let pendingQuestion = ''
+  let questionEl: HTMLTextAreaElement | null = null
 
   /** Safely resolve the current session id (loose cast per plugin convention). */
   function currentSessionId(): string | undefined {
@@ -171,6 +165,7 @@ export function registerQuoteAsk(ctx: ClientContext): void {
       dialogHost = null
     }
     pendingText = ''
+    questionEl = null
   }
 
   /** Submit: append blockquote + question to the composer draft and focus. */
@@ -234,12 +229,22 @@ export function registerQuoteAsk(ctx: ClientContext): void {
         document.body.appendChild(dialogHost)
         dialogRoot = createRoot(dialogHost)
       }
+      questionEl = null
+      const mountTextarea = (el: HTMLTextAreaElement | null) => {
+        questionEl = el
+        if (el) requestAnimationFrame(() => el.focus())
+      }
+      const doSubmit = () => {
+        const q = (questionEl?.value ?? '').trim().slice(0, MAX_QUESTION_CHARS)
+        if (q) submitQuestion(q)
+      }
       dialogRoot?.render(
         createElement(QuoteAskDialog, {
           selectedText: pendingText,
           open: true,
+          onMountTextarea: mountTextarea,
           onClose: closeDialog,
-          onSubmit: submitQuestion,
+          onSubmit: doSubmit,
         }),
       )
     }
