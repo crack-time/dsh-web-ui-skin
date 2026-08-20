@@ -1,0 +1,292 @@
+/**
+ * "Ask about selection" feature for the Pastoral Cottage skin.
+ *
+ * Interaction mirrors ChatGPT's "Ask ChatGPT": select a fragment of an
+ * assistant reply -> a floating native-styled button appears -> click to
+ * open a native Modal showing the quoted selection plus a question input ->
+ * confirm writes "<blockquote> + question" into the composer draft (no
+ * auto-send; user reviews and presses Enter). UI is built entirely from
+ * @deepseek-ai/dsh-client-ui-primitives so it matches the native DSH look
+ * across light/dark/system themes and the skin's glass theme.
+ */
+import { createElement } from 'react'
+import { createRoot, type Root } from 'react-dom/client'
+import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
+import { Button, Modal, ReadBlock, Tooltip } from '@deepseek-ai/dsh-client-ui-primitives'
+
+/** Hard caps to keep drafts and previews sane. */
+const MAX_QUOTE_CHARS = 4000
+const MAX_QUESTION_CHARS = 2000
+const PREVIEW_MAX_LINES = 12
+
+/** Loose runtime facades (mirrors the proven pattern in mention-delete). */
+type SessionsFacade = {
+  list?: () => { getSnapshot?: () => { current?: string } }
+}
+type ComposerShell = {
+  state?: { getSnapshot?: () => { draft?: string } }
+  setDraft?: (text: string) => void
+}
+type ConversationFacade = {
+  input?: { shell?: (id: string) => ComposerShell | undefined }
+}
+
+/** SVG icon for the floating trigger (speech bubble with a quotation mark). */
+const QUOTE_ICON = createElement(
+  'svg',
+  { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': true },
+  createElement('path', {
+    fill: 'currentColor',
+    d: 'M2 3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H6.414l-2.707 2.707A1 1 0 0 1 2 13.414V3Zm4.5 5.5h3a.5.5 0 0 0 0-1h-3a.5.5 0 0 0 0 1Zm-1-2.5h5a.5.5 0 0 0 0-1h-5a.5.5 0 0 0 0 1Z',
+  }),
+)
+
+/** Split text into numbered lines for ReadBlock preview. */
+function toPreviewLines(text: string): Array<{ number: number; text: string }> {
+  return text.split('\n').map((t, i) => ({ number: i + 1, text: t }))
+}
+
+/** Build a markdown blockquote preserving inner newlines. */
+function toBlockquote(text: string): string {
+  return '> ' + text.replace(/\n/g, '\n> ')
+}
+
+/** Dialog body: quoted preview + question textarea + action buttons. */
+function QuoteAskDialog(props: {
+  selectedText: string
+  open: boolean
+  onClose: () => void
+  onSubmit: (question: string) => void
+}) {
+  const { selectedText, open, onClose, onSubmit } = props
+  // Local question state lives in a ref-like closure; re-renders are cheap.
+  // We intentionally avoid useState to keep this module dependency-light;
+  // the outer render cycle re-mounts the component each time anyway.
+  let question = ''
+  const setTextarea = (el: HTMLTextAreaElement | null) => {
+    if (!el) return
+    // Reset value on mount so stale text from previous sessions doesn't leak.
+    el.value = ''
+    el.oninput = () => { question = el.value.slice(0, MAX_QUESTION_CHARS) }
+    // Focus on open for immediate typing.
+    if (open) requestAnimationFrame(() => el.focus())
+  }
+  const handleSubmit = () => {
+    const q = question.trim()
+    if (!q) return
+    onSubmit(q)
+  }
+  return createElement(
+    Modal,
+    {
+      open,
+      onClose,
+      title: '追问选中内容',
+      closeLabel: '关闭',
+      description: '选中的片段将作为引用附在问题前，一起填入输入框。',
+      footer: createElement(
+        'div',
+        { style: { display: 'flex', justifyContent: 'flex-end', gap: 8 } },
+        createElement(Button, { variant: 'ghost', onClick: onClose }, '取消'),
+        createElement(Button, { variant: 'primary', onClick: handleSubmit }, '确定'),
+      ),
+    },
+    createElement(ReadBlock, {
+      lines: toPreviewLines(selectedText),
+      totalLines: selectedText.split('\n').length,
+      maxLines: PREVIEW_MAX_LINES,
+      className: 'skin-quote-preview',
+    }),
+    createElement('textarea', {
+      ref: setTextarea,
+      placeholder: '关于这段内容，你想问什么？',
+      maxLength: MAX_QUESTION_CHARS,
+      rows: 3,
+      style: {
+        marginTop: 12,
+        width: '100%',
+        boxSizing: 'border-box',
+        padding: '8px 12px',
+        borderRadius: 'var(--dsw-radius-md, 6px)',
+        border: '1px solid var(--dsw-border-default, #ccc)',
+        background: 'var(--dsw-bg-input, transparent)',
+        color: 'var(--dsw-fg-default, inherit)',
+        fontFamily: 'inherit',
+        fontSize: '14px',
+        lineHeight: '20px',
+        resize: 'vertical',
+        outline: 'none',
+      },
+    }),
+  )
+}
+
+/**
+ * Register the "ask about selection" affordance. Call once from the skin's
+ * apply(); wires up a global selection listener, the floating trigger button,
+ * and the modal root, all disposed via the returned disposer.
+ */
+export function registerQuoteAsk(ctx: ClientContext): void {
+  let triggerBtn: HTMLElement | null = null
+  let dialogRoot: Root | null = null
+  let dialogHost: HTMLElement | null = null
+  let pendingText = ''
+
+  /** Safely resolve the current session id (loose cast per plugin convention). */
+  function currentSessionId(): string | undefined {
+    try {
+      const sessions = (ctx as unknown as { get?: (k: string) => unknown }).get?.('sessions') as SessionsFacade | undefined
+      return sessions?.list?.()?.getSnapshot?.()?.current
+    } catch {
+      return undefined
+    }
+  }
+
+  /** Resolve the composer shell for the given session. */
+  function shellFor(sessionId: string): ComposerShell | undefined {
+    try {
+      const conv = (ctx as unknown as { get?: (k: string) => unknown }).get?.('conversation') as ConversationFacade | undefined
+      return conv?.input?.shell?.(sessionId)
+    } catch {
+      return undefined
+    }
+  }
+
+  /** Hide the floating trigger. */
+  function hideTrigger() {
+    if (triggerBtn) {
+      triggerBtn.remove()
+      triggerBtn = null
+    }
+  }
+
+  /** Close the dialog and clean up its host. */
+  function closeDialog() {
+    if (dialogRoot) {
+      dialogRoot.unmount()
+      dialogRoot = null
+    }
+    if (dialogHost) {
+      dialogHost.remove()
+      dialogHost = null
+    }
+    pendingText = ''
+  }
+
+  /** Submit: append blockquote + question to the composer draft and focus. */
+  function submitQuestion(question: string) {
+    const sid = currentSessionId()
+    if (!sid) { closeDialog(); return }
+    const shell = shellFor(sid)
+    if (!shell?.state?.getSnapshot || !shell.setDraft) { closeDialog(); return }
+    const current = shell.state.getSnapshot().draft ?? ''
+    const quote = toBlockquote(pendingText.slice(0, MAX_QUOTE_CHARS))
+    const sep = current.length > 0 ? '\n\n' : ''
+    shell.setDraft(current + sep + quote + '\n\n' + question)
+    // Best-effort focus of the composer textarea.
+    const ta = document.querySelector('.uV2eYG_input') as HTMLTextAreaElement | null
+    if (ta) {
+      ta.focus()
+      // Move caret to end so the user can continue editing naturally.
+      try { ta.setSelectionRange(ta.value.length, ta.value.length) } catch {}
+    }
+    closeDialog()
+  }
+
+  /** Show the floating trigger near the end of the current selection. */
+  function showTrigger(rect: DOMRect) {
+    hideTrigger()
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.dataset.skinQuoteAsk = ''
+    btn.setAttribute('aria-label', '追问选中内容')
+    // Match native ghost button sizing without depending on React here; the
+    // modal itself uses the real Button primitive. CSS token alignment keeps
+    // the trigger visually consistent with other native toolbar controls.
+    Object.assign(btn.style, {
+      position: 'fixed',
+      left: Math.min(window.innerWidth - 48, Math.max(8, rect.right + 4)) + 'px',
+      top: Math.min(window.innerHeight - 40, Math.max(8, rect.bottom + 4)) + 'px',
+      zIndex: '10000',
+      padding: '4px 10px',
+      borderRadius: 'var(--dsw-radius-md, 6px)',
+      border: '1px solid var(--dsw-border-default, rgba(0,0,0,0.12))',
+      background: 'var(--dsw-bg-subtle, rgba(0,0,0,0.04))',
+      color: 'var(--dsw-fg-default, inherit)',
+      cursor: 'pointer',
+      fontSize: '13px',
+      lineHeight: '18px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      boxShadow: 'var(--dsw-shadow-sm, 0 1px 2px rgba(0,0,0,0.08))',
+    })
+    btn.textContent = '追问'
+    btn.onclick = () => {
+      const sel = window.getSelection()
+      const text = (sel?.toString() ?? '').trim()
+      if (!text) return
+      pendingText = text
+      // Mount the modal host lazily so we don't pollute the DOM when idle.
+      if (!dialogHost) {
+        dialogHost = document.createElement('div')
+        dialogHost.dataset.skinQuoteAskDialog = ''
+        document.body.appendChild(dialogHost)
+        dialogRoot = createRoot(dialogHost)
+      }
+      dialogRoot?.render(
+        createElement(QuoteAskDialog, {
+          selectedText: pendingText,
+          open: true,
+          onClose: closeDialog,
+          onSubmit: submitQuestion,
+        }),
+      )
+    }
+    document.body.appendChild(btn)
+    triggerBtn = btn
+  }
+
+  /** Decide whether the selection qualifies for the trigger. */
+  function evaluateSelection() {
+    const sel = window.getSelection()
+    if (!sel || sel.isCollapsed) { hideTrigger(); return }
+    const text = sel.toString().trim()
+    if (!text) { hideTrigger(); return }
+    // Anchor must sit inside the chat flow (assistant/user messages live in
+    // .Md3f7G_flowItem; generic bubbles in gdEzaW_bubble). Exclude the
+    // composer seat and input so selecting your own draft doesn't trigger.
+    const anchor = sel.anchorNode
+    if (!anchor) { hideTrigger(); return }
+    const anchorEl = (anchor.nodeType === Node.TEXT_NODE ? anchor.parentElement : anchor) as Element | null
+    if (!anchorEl) { hideTrigger(); return }
+    const inFlow = !!anchorEl.closest('.Md3f7G_flowItem, .gdEzaW_bubble')
+    const inComposer = !!anchorEl.closest('[data-composer-seat], .uV2eYG_input, .uV2eYG_root')
+    if (!inFlow || inComposer) { hideTrigger(); return }
+    // Position the trigger near the end of the selection range.
+    try {
+      const range = sel.getRangeAt(0)
+      const rect = range.getBoundingClientRect()
+      if (rect.width === 0 && rect.height === 0) { hideTrigger(); return }
+      showTrigger(rect)
+    } catch {
+      hideTrigger()
+    }
+  }
+
+  const onSelectionChange = () => evaluateSelection()
+  const onMouseUp = () => {
+    // Defer so the browser finalizes the selection before we measure it.
+    requestAnimationFrame(evaluateSelection)
+  }
+  document.addEventListener('selectionchange', onSelectionChange)
+  document.addEventListener('mouseup', onMouseUp)
+
+  // Wire disposal into the cordis effect lifecycle so hot-reload cleans up.
+  ctx.effect(() => () => {
+    document.removeEventListener('selectionchange', onSelectionChange)
+    document.removeEventListener('mouseup', onMouseUp)
+    hideTrigger()
+    closeDialog()
+  }, 'dsh-web-ui-skin: quote-ask')
+}

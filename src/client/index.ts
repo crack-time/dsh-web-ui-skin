@@ -2,6 +2,7 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArchiveView } from './archive.js'
+import { registerQuoteAsk } from './quote-ask.js'
 import {
   SKIN_CONFIG_URL,
   SKIN_DEFAULTS,
@@ -52,13 +53,15 @@ const cardStore = createSkinCardStore()
 
 /** Client-side service dependencies (runtime inject declaration; the
  * package.json dsh.client.inject metadata mirrors this for the loader). */
-export const inject = ['locale', 'slots', 'remote']
+export const inject = ['locale', 'slots', 'remote', 'conversation']
 
 export function apply(ctx: ClientContext): void {
   const body = document.body
   body.dataset.dshSkin = ''
   // Settings-dialog card: registers the locale dict and the `settings.plugin.item` slot entry.
   installSkinSettingsCard(ctx, cardStore)
+  // "Ask about selection": floating native trigger + modal; see src/client/quote-ask.ts.
+  registerQuoteAsk(ctx)
   // Inline style beats CSS rules. DSH theme may re-set body.style.background
   // on token overrides, so we guard with a MutationObserver.
   let currentBg = BG
