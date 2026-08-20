@@ -11,9 +11,8 @@
  *    the same private surface archiveSession itself uses; TS privacy is
  *    compile-time only).
  */
-import { readFile, readdir, unlink } from 'node:fs/promises'
-import { basename, resolve, sep } from 'node:path'
-import { homedir } from 'node:os'
+import { readFile, unlink } from 'node:fs/promises'
+import { basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
@@ -218,112 +217,6 @@ async function renameSession(ctx: Context, sessionId: string, rawTitle: string):
   return { title }
 }
 
-/**
- * File listing for the '@' mention menu: one directory level of a session's
- * working directory (or the host home when the session has no cwd). The
- * client passes a RELATIVE directory (its navigation state), never an
- * absolute path; this half resolves it against the session cwd and answers
- * with relative paths only, so the browser never needs host paths.
- */
-const MENTION_MAX_ENTRIES = 500
-/** Recursive fuzzy search bounds: depth cap and result cap keep huge trees sane. */
-const MENTION_SEARCH_DEPTH = 6
-const MENTION_SEARCH_MAX = 60
-/** Directory names never descended into during the '@' search. */
-const MENTION_SKIP = new Set(['node_modules', '.git', '.svn', '.hg', '.idea', '.vscode', '.next', 'dist', 'build', '.dsh'])
-
-/**
- * Recursive name search under cwd: returns entries (files and directories)
- * whose base name contains the query, as full relative paths (directories
- * carry a trailing '/'). Shallow matches surface first (the walk matches
- * each level before descending). Caps: depth 6, 60 results.
- */
-async function searchMentionFiles(cwd: string, query: string): Promise<Array<{ name: string; path: string; isDirectory: boolean }>> {
-  const needle = query.toLowerCase()
-  const out: Array<{ name: string; path: string; isDirectory: boolean }> = []
-  const walk = async (rel: string, depth: number): Promise<void> => {
-    if (out.length >= MENTION_SEARCH_MAX || depth > MENTION_SEARCH_DEPTH) return
-    const absolute = resolve(cwd, rel || '.')
-    let entries
-    try {
-      entries = await readdir(absolute, { withFileTypes: true })
-    } catch {
-      return
-    }
-    // Match this level before descending (shallow results come first).
-    for (const e of entries) {
-      if (e.name.startsWith('.') || MENTION_SKIP.has(e.name)) continue
-      if (e.name.toLowerCase().includes(needle)) {
-        const path = rel ? rel.replace(/[\\/]+$/g, '') + '/' + e.name : e.name
-        out.push({ name: e.name, path: e.isDirectory() ? path + '/' : path, isDirectory: e.isDirectory() })
-        if (out.length >= MENTION_SEARCH_MAX) return
-      }
-    }
-    for (const e of entries) {
-      if (!e.isDirectory() || e.name.startsWith('.') || MENTION_SKIP.has(e.name)) continue
-      await walk(rel ? rel + '/' + e.name : e.name, depth + 1)
-      if (out.length >= MENTION_SEARCH_MAX) return
-    }
-  }
-  await walk('', 0)
-  return out
-}
-
-
-async function listMentionFiles(ctx: Context, sessionId: string | undefined, rel: string, query: string): Promise<{
-  cwd: string | null
-  dir: string
-  entries: Array<{ name: string; path: string; isDirectory: boolean }>
-  truncated: boolean
-}> {
-  const persistence = ctx.sessionPersistence as unknown as {
-    list: () => Promise<Array<{ id: unknown; cwd?: string }>>
-  }
-  let cwd: string | undefined
-  if (sessionId) {
-    const headers = await persistence.list()
-    // Tolerate both 'session-<uuid>' and bare '<uuid>' spellings.
-    const plain = sessionId.replace(/^session-/, '')
-    const header = headers.find((h) => {
-      const id = String(h.id)
-      return id === sessionId || id === 'session-' + plain || id.replace(/^session-/, '') === plain
-    })
-    cwd = header?.cwd
-  }
-  const base = cwd ?? homedir()
-
-  // Search mode: no directory prefix and a non-empty query — fuzzy-recursive
-  // name search across the whole cwd (opencode-style '@ass' finds assets/).
-  if (!rel && query) {
-    const entries = await searchMentionFiles(base, query)
-    return {
-      cwd: cwd ?? null,
-      dir: '',
-      entries,
-      truncated: entries.length >= MENTION_SEARCH_MAX,
-    }
-  }
-
-  const absolute = resolve(base, rel || '.')
-  const entries = await readdir(absolute, { withFileTypes: true })
-  const rows = entries
-    .filter((e) => !e.name.startsWith('.'))
-    .map((e) => ({
-      name: e.name,
-      // Full relative path from the session cwd (client inserts this verbatim)
-      path: rel ? rel.replace(/[\\/]+$/g, '') + '/' + e.name : e.name,
-      isDirectory: e.isDirectory(),
-    }))
-  const dirs = rows.filter((e) => e.isDirectory).sort((a, b) => a.name.localeCompare(b.name))
-  const files = rows.filter((e) => !e.isDirectory).sort((a, b) => a.name.localeCompare(b.name))
-  const ordered = [...dirs, ...files]
-  return {
-    cwd: cwd ?? null,
-    dir: rel,
-    entries: ordered.slice(0, MENTION_MAX_ENTRIES),
-    truncated: ordered.length > MENTION_MAX_ENTRIES,
-  }
-}
 
 /**
  * Archived list grouped by owning workspace (registry display order; archived
@@ -421,23 +314,6 @@ async function handleApi(
     }
     if (method === 'GET' && url.pathname === API_PREFIX + '/archived') {
       return sendJson(res, 200, await listArchived(ctx))
-    }
-    if (method === 'GET' && url.pathname === API_PREFIX + '/mention/files') {
-      const sessionId = typeof url.searchParams.get('sessionId') === 'string' ? (url.searchParams.get('sessionId') as string) : undefined
-      const dir = url.searchParams.get('dir') ?? ''
-      const q = url.searchParams.get('q') ?? ''
-      try {
-        return sendJson(res, 200, await listMentionFiles(ctx, sessionId, dir, q))
-      } catch (error) {
-        ctx.logger.warn('skin: mention files list failed', error)
-        return sendJson(res, 200, {
-          cwd: null,
-          dir,
-          entries: [],
-          truncated: false,
-          error: 'directory-unreadable',
-        })
-      }
     }
     if (method === 'POST' && (url.pathname === API_PREFIX + '/unarchive' || url.pathname === API_PREFIX + '/delete-session')) {
       const body = JSON.parse((await readBody(req)) || '{}') as { sessionId?: unknown }

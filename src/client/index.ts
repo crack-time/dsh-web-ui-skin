@@ -2,7 +2,6 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArchiveView } from './archive.js'
-import { registerFileMention } from './mention.js'
 import {
   SKIN_CONFIG_URL,
   SKIN_DEFAULTS,
@@ -53,14 +52,11 @@ const cardStore = createSkinCardStore()
 
 /** Client-side service dependencies (runtime inject declaration; the
  * package.json dsh.client.inject metadata mirrors this for the loader). */
-export const inject = ['inputTriggers', 'locale', 'conversation', 'slots', 'remote']
+export const inject = ['locale', 'slots', 'remote']
 
 export function apply(ctx: ClientContext): void {
   const body = document.body
   body.dataset.dshSkin = ''
-  try {
-    registerFileMention(ctx)
-  } catch {}
   // Settings-dialog card: registers the locale dict and the `settings.plugin.item` slot entry.
   installSkinSettingsCard(ctx, cardStore)
   // Inline style beats CSS rules. DSH theme may re-set body.style.background

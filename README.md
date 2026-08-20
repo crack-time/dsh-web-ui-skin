@@ -51,11 +51,8 @@
 - API：`/plugins/@crack/dsh-web-ui-skin/api`（GET /archived、POST /rename-session、POST /unarchive、POST /delete-session）
 
 
-### 输入框 @ 文件提及（皮肤扩展）
-- 输入框输入 `@` 打开文件/目录候选菜单（复用 dsh 原生触发管线，与 `/` 命令菜单同源）
-- 目录可逐级进入；输入关键字（如 `@ass`）递归搜索当前工作目录（跳过 node_modules 等），长名称不截断，菜单宽度与 `/` 菜单一致
-- 选中后插入真实文本 `@相对路径`：光标对齐、宽度自适应；在提及末尾按 Backspace **一次性删除整个提及**
-- API：`/plugins/@crack/dsh-web-ui-skin/api`（GET /mention/files）
+### 输入框 @ 文件/会话引用（已移除——由 dsh 原生提供）
+- dsh rc.8 起，原生 `@` 菜单支持引用文件和会话；皮肤曾自带的 @ 文件提及实现（`GET /mention/files` 路由 + 自定义 `@` 触发源 + Backspace 整词删除）已删除，避免与原生功能冲突。
 
 ## 安装
 
