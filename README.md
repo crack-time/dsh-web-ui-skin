@@ -52,7 +52,7 @@
 
 
 ### 输入框 @ 文件/会话引用（已移除——由 dsh 原生提供）
-- dsh rc.8 起，原生 `@` 菜单支持引用文件和会话；皮肤曾自带的 @ 文件提及实现（`GET /mention/files` 路由 + 自定义 `@` 触发源 + Backspace 整词删除）已删除，避免与原生功能冲突。
+- dsh rc.8 起，原生 `@` 菜单支持引用文件和会话，本插件曾自带的实现已删除，避免与原生功能冲突。
 
 
 ## 安装
@@ -66,7 +66,7 @@ dsh plugin --profile web add "link:E:\path\to\dsh-web-ui-skin"
 # 2. 在 profile patch 中注册插件行
 #    编辑 C:\Users\<you>\.dsh\profiles\web\cordis.patch.yml，追加：
 #    - insert:
-#        - id: ui-skin-cottage
+#        - id: dsh-web-ui-skin
 #          name: '@crack/dsh-web-ui-skin'
 
 # 3. 保存后 dsh 自动热重载（boot HMR 重读 patch），无需重启
@@ -83,13 +83,13 @@ pnpm run watch        # 监听模式：改 src/ 自动重建
 pnpm run typecheck    # 类型检查
 ```
 
-- 编辑 `src/client/cottage.css`（样式）或 `src/client/index.ts`（浏览器端逻辑）
-- 替换 `assets/cottage-bg.jpg`（壁纸原图，由 host 路由 serve）
+- 编辑 `src/client/skin.css`（样式）或 `src/client/index.ts`（浏览器端逻辑）
+- 替换 `assets/bg.jpg`（壁纸原图，由 host 路由 serve）
 - 构建完成后浏览器自动热替换（client-hmr，无需刷新/重启）
 
 ## 卸载
 
-1. 删除 `cordis.patch.yml` 中的 `ui-skin-cottage` 注册行
+1. 删除 `cordis.patch.yml` 中的 `dsh-web-ui-skin` 注册行
 2. 重启 dsh web
 3. （可选）`dsh plugin --profile web remove @crack/dsh-web-ui-skin`
 
@@ -97,14 +97,14 @@ pnpm run typecheck    # 类型检查
 
 ```
 dsh-web-ui-skin/
-├── src/index.ts                    # host 面：注册 bg.jpg / api 路由 + cottage 设置命名空间
+├── src/index.ts                    # host 面：注册 bg.jpg / api 路由 + skin 设置命名空间
 ├── src/client/index.ts             # 浏览器端逻辑（apply）+ 配置实时应用
 ├── src/client/settings-card.tsx    # 设置弹窗壁纸卡片（可折叠外壳 + 本机图片/URL）
 ├── src/client/local-wallpaper.ts   # File System Access API 零拷贝本机图片（IndexedDB 句柄）
 ├── src/client/archive.tsx          # 归档视图 React 组件（原生 Modal/Button 复用）
-├── src/client/cottage.css          # 皮肤 CSS 源文件（构建时注入）
-├── assets/cottage-bg.jpg           # 壁纸原图（host 路由 serve）
-├── scripts/cottage-inline-plugin.mjs  # tsdown 插件：内联 CSS
+├── src/client/skin.css             # 皮肤 CSS 源文件（构建时内联注入）
+├── assets/bg.jpg                   # 壁纸原图（host 路由 serve）
+├── scripts/skin-inline-plugin.mjs  # tsdown 插件：内联 CSS
 ├── scripts/dev.mjs                 # watch 并行构建
 ├── tsconfig.json / tsconfig.client.json  # host/client 双 program
 ├── tsdown.config.ts                # client bundle 协议构建
