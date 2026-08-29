@@ -1,5 +1,8 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
-/** Client-side service dependencies (runtime inject declaration; the
- * package.json dsh.client.inject metadata mirrors this for the loader). */
+/** Client-side service inject declaration — the services this plugin reads
+ * through ctx (locale, slots, remote). This is the runtime declaration the
+ * ModuleLoader wires; package.json dsh.client.inject is the loader's graph
+ * metadata / access guard and lists provider module names — the two lists are
+ * different things and are intentionally not identical. */
 export declare const inject: string[];
 export declare function apply(ctx: ClientContext): void;

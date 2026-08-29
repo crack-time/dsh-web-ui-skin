@@ -293,14 +293,15 @@ async function handleApi(
 ): Promise<void> {
   const url = new URL(req.url ?? '/', 'http://localhost')
   const method = req.method ?? 'GET'
+  const path = url.pathname
   try {
-    if (method === 'GET' && url.pathname === API_PREFIX + '/config') {
+    if (method === 'GET' && path === API_PREFIX + '/config') {
       // Current resolved skin settings (schema defaults + user layer). The
       // client re-fetches on the `settings/document-updated` wire event, so
       // card edits apply live without a page reload.
       return sendJson(res, 200, settings.get())
     }
-    if (method === 'POST' && url.pathname === API_PREFIX + '/config') {
+    if (method === 'POST' && path === API_PREFIX + '/config') {
       // The settings card's write path: a JSON patch over the "skin"
       // namespace user layer. Goes through ctx.settings.update so the schema
       // validates it, the revision bumps, and `settings/document-updated`
@@ -312,21 +313,21 @@ async function handleApi(
       await settings.update(body.patch as Record<string, unknown>)
       return sendJson(res, 200, settings.get())
     }
-    if (method === 'GET' && url.pathname === API_PREFIX + '/archived') {
+    if (method === 'GET' && path === API_PREFIX + '/archived') {
       return sendJson(res, 200, await listArchived(ctx))
     }
-    if (method === 'POST' && (url.pathname === API_PREFIX + '/unarchive' || url.pathname === API_PREFIX + '/delete-session')) {
+    if (method === 'POST' && (path === API_PREFIX + '/unarchive' || path === API_PREFIX + '/delete-session')) {
       const body = JSON.parse((await readBody(req)) || '{}') as { sessionId?: unknown }
       const sessionId = typeof body.sessionId === 'string' ? body.sessionId : ''
       if (!sessionId) return sendJson(res, 400, { error: 'sessionId (string) required' })
-      if (url.pathname.endsWith('/unarchive')) {
+      if (path.endsWith('/unarchive')) {
         await unarchive(ctx, sessionId)
       } else {
         await deleteSession(ctx, sessionId)
       }
       return sendJson(res, 200, { ok: true })
     }
-    if (method === 'POST' && url.pathname === API_PREFIX + '/rename-session') {
+    if (method === 'POST' && path === API_PREFIX + '/rename-session') {
       const body = JSON.parse((await readBody(req)) || '{}') as { sessionId?: unknown; title?: unknown }
       const sessionId = typeof body.sessionId === 'string' ? body.sessionId : ''
       const title = typeof body.title === 'string' ? body.title : ''
