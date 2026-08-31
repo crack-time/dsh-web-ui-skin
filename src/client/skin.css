@@ -178,7 +178,7 @@ body[data-dsh-skin] .wSkVaW_root[data-phase="hero"] .wSkVaW_scrollBody {
 }
 
 /* 滚动区内边距收窄到 16px，让消息内容正好 748px（默认 32px 会挤窄） */
-body[data-dsh-skin] .Md3f7G_scroll {
+body[data-dsh-skin] .EvIC1a_scroll {
   padding: 16px;
 }
 
@@ -206,7 +206,7 @@ body[data-dsh-skin] .wSkVaW_root[data-phase="active"] .wSkVaW_composerSeat {
    会话统计条：放宽到与座位同宽（780px），
    内边距收窄，完整展示统计文本不被省略号截断
    ============================================ */
-body[data-dsh-skin] .FJxK0a_root {
+body[data-dsh-skin] .EvIC1a_turnStatus {
   max-width: var(--dsh-composer-card-max-width);
   padding: 4px 4px 0;
   font-size: 12px;
@@ -215,7 +215,7 @@ body[data-dsh-skin] .FJxK0a_root {
 /* 原生"回到底部"按钮：滚动容器保持为 scrollBody，原生显隐逻辑
    有效；仅改为水平居中、贴输入框上方 16px（默认右对齐且按
    152px 输入框高度预留偏移） */
-body[data-dsh-skin] [data-conversation-scroll] .Md3f7G_toBottomSlot {
+body[data-dsh-skin] [data-conversation-scroll] .EvIC1a_toBottomSlot {
   bottom: 16px;
   justify-content: center;
   padding-right: 0;

@@ -236,7 +236,7 @@ export function apply(ctx: ClientContext): void {
       lastSeat = seat
     }
     const chatActive = !!document.querySelector(
-      '.wSkVaW_scrollBody .Md3f7G_root',
+      '.wSkVaW_scrollBody .EvIC1a_root',
     )
     const crumb = document.querySelector('.wSkVaW_crumbs')
     const crumbText = crumb ? crumb.textContent : ''
