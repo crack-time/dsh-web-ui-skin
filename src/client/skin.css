@@ -6,6 +6,8 @@
 
 /* === 亮色版 === */
 body[data-dsh-skin] {
+  /* 防止横向滚动条 */
+  overflow-x: hidden;
   /* 壁纸全屏铺底 */
   background-color: #3a6ea5;
   background-size: cover;
@@ -150,6 +152,8 @@ body[data-dsh-skin] .pI_x6G_frame {
 /* 消息文本列：背景挂在滚动容器（scrollBody）上，
    左右边缘 2px 渐变淡出；宽度由 DSH 原生控制 */
 body[data-dsh-skin]:not(:has(.qBU-ya_root)) .wSkVaW_scrollBody {
+  width: 100%;
+  overflow-x: hidden;
   background-color: transparent;
   background-image: linear-gradient(to right,
     transparent 0,
