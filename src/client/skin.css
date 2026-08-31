@@ -147,20 +147,9 @@ body[data-dsh-skin] .pI_x6G_frame {
   background: transparent;
 }
 
-/* ============================================
-   消息文本列：与输入框等宽、同透明度（直角）
-   背景挂在视口固定的滚动容器（scrollBody）上，
-   左右边缘 2px 渐变淡出；
-   消息内容保持 748px（--dsh-chat-content-width）
-   ============================================ */
-/* width:100% + max-width：作为 flex 子项带 margin:0 auto 时不会被拉伸，
-   若只靠 max-width 宽度会退化到内容宽度（加载历史时缩成窄条） */
+/* 消息文本列：背景挂在滚动容器（scrollBody）上，
+   左右边缘 2px 渐变淡出；宽度由 DSH 原生控制 */
 body[data-dsh-skin]:not(:has(.qBU-ya_root)) .wSkVaW_scrollBody {
-  width: 100%;
-  /* 背景与输入座位同宽（812px）；文本列有 max-width:748 自行封顶 */
-  max-width: calc(var(--dsh-composer-card-max-width) + 2 * var(--dsh-composer-side-clearance));
-  margin: 0 auto;
-  /* 左右边缘渐变淡出，避免白面板与壁纸硬切（中间仍为 85% 不透明） */
   background-color: transparent;
   background-image: linear-gradient(to right,
     transparent 0,
@@ -169,11 +158,8 @@ body[data-dsh-skin]:not(:has(.qBU-ya_root)) .wSkVaW_scrollBody {
     transparent 100%);
 }
 
-/* 新建对话（hero 欢迎态）：解除面板约束，恢复 dsh 全宽布局
-   （hero 内容本就以 780px 居中，不再套白色面板） */
+/* 新建对话（hero 欢迎态）：移除渐变背景 */
 body[data-dsh-skin] .wSkVaW_root[data-phase="hero"] .wSkVaW_scrollBody {
-  max-width: none;
-  margin: 0;
   background: transparent;
 }
 
