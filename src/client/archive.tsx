@@ -272,6 +272,20 @@ export function ArchiveView({
     }
   }
 
+  // Keyboard access: while the delete confirmation is open, Enter confirms
+  // the danger action (mirroring how the rename input uses Enter). The Modal
+  // already handles Escape→onClose, so only the confirm key is added here.
+  useEffect(() => {
+    if (deleteTarget === null) return
+    const onKeyDown = (e: KeyboardEvent): void => {
+      if (e.key !== 'Enter') return
+      e.preventDefault()
+      void confirmDelete()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [deleteTarget, deleting])
+
   const renameTrimmed = renameDraft.trim()
   const renameBlocked = renaming || renameTrimmed === '' || renameTarget === null
 
