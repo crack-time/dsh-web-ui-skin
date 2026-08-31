@@ -244,120 +244,8 @@ body[data-dsh-skin] .hHd-Xa_logoRow > button:last-child {
   margin-right: 7px;
 }
 
-/* ============================================
-   滚动条美化
-   ============================================ */
-body[data-dsh-skin] ::-webkit-scrollbar {
-  width: 6px;
-}
-body[data-dsh-skin] ::-webkit-scrollbar-track {
-  background: transparent;
-}
-body[data-dsh-skin] ::-webkit-scrollbar-thumb {
-  background: rgba(90, 159, 212, 0.3);
-  border-radius: 3px;
-}
-body[data-dsh-skin] ::-webkit-scrollbar-thumb:hover {
-  background: rgba(90, 159, 212, 0.5);
-}
-/* ============================================
-   轨迹页（中间主区域，.qBU-ya_root）：作用域还原
-   dsh 默认 token —— 页面本身保持 dsh 默认外观；
-   其余区域（侧栏/顶栏/输入区等）皮肤照常生效。
-   注意：从轨迹页打开的弹层挂在 body 上，会继承
-   皮肤 token（玻璃效果），此为已知取舍
-   ============================================ */
-body[data-dsh-skin] .qBU-ya_root {
-  --dsw-alias-bg-base: var(--dsw-static-neutral-bluish-00);
-  --dsw-alias-bg-layer-1: var(--dsw-static-neutral-bluish-00);
-  --dsw-alias-bg-layer-2: var(--dsw-static-neutral-bluish-00);
-  --dsw-alias-bg-layer-3: var(--dsw-static-neutral-bluish-00);
-  --dsw-alias-bg-overlay: var(--dsw-static-neutral-bluish-150);
-  --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.24);
-  --dsw-alias-bg-mask-2: rgba(0, 0, 0, 0.12);
-  --dsw-alias-bg-mask-3: rgba(0, 0, 0, 0.48);
-  --dsw-alias-bg-skeleton: rgba(0, 0, 0, 0.04);
-  --dsw-alias-bg-multi-select: var(--dsw-static-neutral-bluish-60);
-  --dsw-alias-border-l1: rgba(0, 0, 0, 0.04);
-  --dsw-alias-border-l2: rgba(0, 0, 0, 0.1);
-  --dsw-alias-border-l3: rgba(0, 0, 0, 0.12);
-  --dsw-alias-brand-primary: var(--dsw-static-neutral-bluish-1000);
-  --dsw-alias-brand-primary-invert: var(--dsw-static-neutral-bluish-1000);
-  --dsw-alias-brand-text: var(--dsw-static-neutral-bluish-1000);
-  --dsw-alias-button-contrast-fill: var(--dsw-static-neutral-bluish-700);
-  --dsw-alias-button-elevated-fill: var(--dsw-static-neutral-bluish-00);
-  --dsw-alias-button-primary-fill: var(--dsw-alias-brand-primary);
-  --dsw-alias-button-primary-hover: var(--dsw-static-neutral-bluish-750);
-  --dsw-alias-interactive-bg-hover: rgba(38, 49, 72, 0.06);
-  --dsw-alias-interactive-bg-active: rgba(38, 49, 72, 0.1);
-  --dsw-alias-interactive-bg-hover-accent: rgba(38, 49, 72, 0.14);
-  --dsw-alias-label-primary: var(--dsw-static-neutral-bluish-1000);
-  --dsw-alias-label-secondary: var(--dsw-static-neutral-bluish-700);
-  --dsw-alias-label-tertiary: var(--dsw-static-neutral-bluish-600);
-  --dsw-alias-label-primary-inverted: var(--dsw-static-neutral-bluish-00);
-  --dsw-alias-markdown-code-block: var(--dsw-static-neutral-bluish-50);
-  --dsw-alias-markdown-inline-code: var(--dsw-static-neutral-bluish-100);
-  --dsw-alias-state-success-primary: var(--dsw-static-green-500);
-  --dsw-alias-state-warn-primary: var(--dsw-static-amber-500);
-  --dsw-alias-toast-bg: var(--dsw-static-neutral-bluish-800);
-  --dsw-alias-tooltip-bg: var(--dsw-static-neutral-bluish-850);
-  --dsw-specific-bubble: var(--dsw-static-deepseek-50);
-  --dsw-specific-bubble-highlight: var(--dsw-static-deepseek-200);
-  --dsw-specific-input-major: var(--dsw-static-neutral-bluish-00);
-  --dsw-specific-menu: var(--dsw-alias-bg-layer-3);
-  --dsw-specific-selector: var(--dsw-static-neutral-bluish-60);
-  --dsw-specific-sidebar-fill: var(--dsw-static-neutral-bluish-50);
-}
 
-body[data-dsh-skin][data-ds-dark-theme] .qBU-ya_root {
-  --dsw-alias-bg-base: var(--dsw-static-neutral-bluish-950);
-  --dsw-alias-bg-layer-1: var(--dsw-static-neutral-bluish-875);
-  --dsw-alias-bg-layer-2: var(--dsw-static-neutral-bluish-850);
-  --dsw-alias-bg-layer-3: var(--dsw-static-neutral-bluish-800);
-  --dsw-alias-bg-overlay: var(--dsw-static-neutral-bluish-700);
-  --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.5);
-  --dsw-alias-bg-mask-2: rgba(0, 0, 0, 0.2);
-  --dsw-alias-bg-mask-3: rgba(0, 0, 0, 0.48);
-  --dsw-alias-bg-skeleton: rgba(255, 255, 255, 0.08);
-  --dsw-alias-bg-multi-select: var(--dsw-static-neutral-850);
-  --dsw-alias-border-l1: rgba(255, 255, 255, 0.06);
-  --dsw-alias-border-l2: rgba(255, 255, 255, 0.12);
-  --dsw-alias-border-l3: rgba(255, 255, 255, 0.16);
-  --dsw-alias-brand-primary: var(--dsw-static-neutral-bluish-50);
-  --dsw-alias-brand-primary-invert: var(--dsw-static-neutral-bluish-50);
-  --dsw-alias-brand-text: var(--dsw-static-neutral-bluish-50);
-  --dsw-alias-button-contrast-fill: var(--dsw-static-neutral-bluish-50);
-  --dsw-alias-button-elevated-fill: var(--dsw-static-neutral-bluish-750);
-  --dsw-alias-button-primary-fill: var(--dsw-alias-brand-primary);
-  --dsw-alias-button-primary-hover: var(--dsw-static-neutral-bluish-100);
-  --dsw-alias-interactive-bg-hover: rgba(255, 255, 255, 0.08);
-  --dsw-alias-interactive-bg-active: rgba(255, 255, 255, 0.14);
-  --dsw-alias-interactive-bg-hover-accent: rgba(255, 255, 255, 0.24);
-  --dsw-alias-label-primary: var(--dsw-static-neutral-bluish-50);
-  --dsw-alias-label-secondary: var(--dsw-static-neutral-bluish-300);
-  --dsw-alias-label-tertiary: var(--dsw-static-neutral-bluish-400);
-  --dsw-alias-label-primary-inverted: var(--dsw-static-neutral-bluish-800);
-  --dsw-alias-markdown-code-block: var(--dsw-static-neutral-bluish-900);
-  --dsw-alias-markdown-inline-code: var(--dsw-static-neutral-bluish-850);
-  --dsw-alias-state-success-primary: var(--dsw-static-green-500);
-  --dsw-alias-state-warn-primary: var(--dsw-static-amber-500);
-  --dsw-alias-toast-bg: var(--dsw-static-neutral-bluish-750);
-  --dsw-alias-tooltip-bg: var(--dsw-static-neutral-bluish-750);
-  --dsw-specific-bubble: var(--dsw-static-neutral-bluish-850);
-  --dsw-specific-bubble-highlight: var(--dsw-static-neutral-bluish-750);
-  --dsw-specific-input-major: var(--dsw-static-neutral-bluish-850);
-  --dsw-specific-menu: var(--dsw-alias-bg-layer-3);
-  --dsw-specific-selector: var(--dsw-static-neutral-bluish-800);
-  --dsw-specific-sidebar-fill: var(--dsw-static-neutral-bluish-900);
-}
 
-/* 轨迹页内滚动条滑块还原默认颜色 */
-body[data-dsh-skin] .qBU-ya_root ::-webkit-scrollbar-thumb {
-  background: var(--dsw-alias-scrollbar-bg-l2);
-}
-body[data-dsh-skin] .qBU-ya_root ::-webkit-scrollbar-thumb:hover {
-  background: var(--dsw-alias-scrollbar-hover-l2);
-}
 /* 侧边栏归档入口按钮（添加工作区右侧） */
 body[data-dsh-skin] button[data-skin-archive-btn] {
   /* 与原生 iconButton 一致：28px 圆形、label-secondary、hover 同款背景 */
@@ -675,14 +563,7 @@ body[data-dsh-skin] .skin-delete-status {
   line-height: 18px;
 }
 
-/* @ 文件提及菜单：与 / 命令菜单同宽（原生按内容收缩，路径类描述不会撑宽）
-   —— 用菜单组标题的 data-source 精准命中文件组，/ 命令菜单不受影响 */
-body[data-dsh-skin] [role="listbox"]:has([data-source="文件"]) {
-  min-width: min(480px, 100%);
-}
-body[data-dsh-skin] [role="listbox"]:has([data-source="文件"]) [role="option"] > span:nth-child(2) {
-  max-width: none;
-}
+
 
 /* ============================================
    设置弹窗 · "skin" 设置卡片（rc.7 插件设置卡片）
