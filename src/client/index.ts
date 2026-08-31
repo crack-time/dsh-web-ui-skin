@@ -2,6 +2,7 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArchiveView } from './archive.js'
+import { SessionIdBadge } from './session-id-badge.js'
 
 /**
  * Client entry for the Pastoral Cottage skin.
@@ -93,6 +94,19 @@ export function apply(ctx: ClientContext): void {
     ensureArchiveButton()
   }
   onDomChange()
+
+  // ── Session ID badge in header ──────────────────────────────────────
+  const slots = ctx.get('slots') as any;
+  slots?.inject?.('conversation.session.header.actions', function* () {
+    yield slots.register({
+      name: 'conversation.session.header.actions',
+      id: 'archive-session-id',
+      order: -4,
+      locale: 'dsh-archive',
+      inject: (sessionId: string) => ({ hooks: {}, sessionId }),
+    }, SessionIdBadge);
+  });
+
   // Archive view: mounted IN PLACE over the workspace tree region (the same
   // spot the native session list occupies), toggled by the sidebar button.
   let archiveRoot: ReturnType<typeof createRoot> | null = null
