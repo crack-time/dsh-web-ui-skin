@@ -8,17 +8,15 @@
 body[data-dsh-skin] {
   /* 防止横向滚动条 */
   overflow-x: hidden;
-  /* 壁纸全屏铺底 */
+}
+
+/* ---- 壁纸铺在 #root 上 ---- */
+body[data-dsh-skin] #root {
   background-color: #3a6ea5;
   background-size: cover;
   background-position: center center;
   background-attachment: fixed;
   background-repeat: no-repeat;
-}
-
-/* ---- #root 容器：透明背景让壁纸透出来 ---- */
-body[data-dsh-skin] #root {
-  background: transparent !important;
 }
 
 /* ============================================
