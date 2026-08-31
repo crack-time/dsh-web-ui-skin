@@ -1,207 +1,20 @@
 /* ============================================
    田园小屋 (Pastoral Cottage) Skin
-   3840x2160 吉卜力风格田园插画全屏背景
-   半透明毛玻璃面板
+   全屏壁纸背景
    ============================================ */
 
 /* === 亮色版 === */
-/* ---- 壁纸铺在 #root 上 ---- */
-body[data-dsh-skin] #root {
-  background-color: #3a6ea5;
-  background-size: cover;
-  background-position: center center;
-  background-attachment: fixed;
-  background-repeat: no-repeat;
-}
-
-/* ============================================
-   Design Token 覆盖 — 亮色
-   ============================================ */
-body[data-dsh-skin] {
-  /* 品牌色：天空蓝 */
-  --dsw-alias-brand-primary: #5a9fd4;
-  --dsw-alias-brand-primary-invert: #fff;
-  --dsw-alias-brand-text: #4a8fc4;
-
-  /* 背景：半透明毛玻璃 */
-  --dsw-alias-bg-base: rgba(255, 255, 255, 0.48);
-  --dsw-alias-bg-layer-1: rgba(255, 255, 255, 0.42);
-  --dsw-alias-bg-layer-2: rgba(250, 249, 247, 0.90);
-  --dsw-alias-bg-layer-3: rgba(240, 237, 230, 0.48);
-  --dsw-alias-bg-overlay: rgba(255, 255, 255, 0.68);
-  --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.45);
-
-  /* 边框 */
-  --dsw-alias-border-l1: rgba(90, 159, 212, 0.12);
-  --dsw-alias-border-l2: rgba(90, 159, 212, 0.18);
-  --dsw-alias-border-l3: rgba(90, 159, 212, 0.25);
-
-  /* 文字 */
-  --dsw-alias-label-primary: #2c3e50;
-  --dsw-alias-label-secondary: #46535f;
-  --dsw-alias-label-tertiary: #64748a;
-  --dsw-alias-label-primary-inverted: #fff;
-
-  /* 交互 */
-  --dsw-alias-interactive-bg-hover: rgba(90, 159, 212, 0.10);
-  --dsw-alias-interactive-bg-active: rgba(90, 159, 212, 0.15);
-  --dsw-alias-interactive-bg-hover-accent: rgba(90, 159, 212, 0.14);
-
-  /* 按钮 */
-  --dsw-alias-button-primary-fill: #5a9fd4;
-  --dsw-alias-button-primary-hover: #4a8fc4;
-  --dsw-alias-button-elevated-fill: rgba(255, 255, 255, 0.65);
-  --dsw-alias-button-contrast-fill: #3a6ea5;
-
-  /* 侧边栏 */
-  --dsw-specific-sidebar-fill: rgba(248, 245, 240, 0.42);
-
-  /* 聊天气泡 */
-  --dsw-specific-bubble: rgba(255, 255, 255, 0.48);
-  --dsw-specific-bubble-highlight: rgba(90, 159, 212, 0.12);
-
-  /* 输入框 */
-  --dsw-specific-input-major: rgba(255, 255, 255, 0.85);
-
-  /* 菜单 / 选择器 */
-  --dsw-specific-menu: #ffffff;
-  --dsw-specific-selector: rgba(248, 245, 240, 0.62);
-
-  /* 代码块 */
-  --dsw-alias-markdown-code-block: rgba(248, 245, 240, 0.58);
-  --dsw-alias-markdown-inline-code: rgba(248, 245, 240, 0.64);
-
-  /* Toast / Tooltip */
-  --dsw-alias-toast-bg: rgba(45, 75, 105, 0.92);
-  --dsw-alias-tooltip-bg: rgba(44, 44, 46, 0.95);
-}
-
-/* ============================================
-   Design Token 覆盖 — 暗色
-   ============================================ */
-body[data-dsh-skin][data-ds-dark-theme] {
-  --dsw-alias-brand-primary: #7ab8e8;
-  --dsw-alias-brand-primary-invert: #1a2a3a;
-  --dsw-alias-brand-text: #7ab8e8;
-
-  --dsw-alias-bg-base: rgba(18, 22, 30, 0.52);
-  --dsw-alias-bg-layer-1: rgba(22, 26, 34, 0.50);
-  --dsw-alias-bg-layer-2: rgba(26, 30, 38, 0.90);
-  --dsw-alias-bg-layer-3: rgba(30, 34, 42, 0.46);
-  --dsw-alias-bg-overlay: rgba(20, 24, 32, 0.72);
-  --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.55);
-
-  --dsw-alias-border-l1: rgba(122, 184, 232, 0.10);
-  --dsw-alias-border-l2: rgba(122, 184, 232, 0.16);
-  --dsw-alias-border-l3: rgba(122, 184, 232, 0.22);
-
-  --dsw-alias-label-primary: #e0e6ed;
-  --dsw-alias-label-secondary: #a0aab4;
-  --dsw-alias-label-tertiary: #7a8490;
-  --dsw-alias-label-primary-inverted: #1a2a3a;
-
-  --dsw-alias-interactive-bg-hover: rgba(122, 184, 232, 0.10);
-  --dsw-alias-interactive-bg-active: rgba(122, 184, 232, 0.15);
-  --dsw-alias-interactive-bg-hover-accent: rgba(122, 184, 232, 0.12);
-
-  --dsw-alias-button-primary-fill: #4a8ab8;
-  --dsw-alias-button-primary-hover: #5a9ac8;
-  --dsw-alias-button-elevated-fill: rgba(30, 34, 42, 0.62);
-  --dsw-alias-button-contrast-fill: #7ab8e8;
-
-  --dsw-specific-sidebar-fill: rgba(22, 26, 34, 0.52);
-  --dsw-specific-bubble: rgba(26, 30, 38, 0.50);
-  --dsw-specific-bubble-highlight: rgba(122, 184, 232, 0.12);
-  --dsw-specific-input-major: rgba(18, 22, 30, 0.85);
-  --dsw-specific-menu: #161a22;
-  --dsw-specific-selector: rgba(26, 30, 38, 0.66);
-
-  --dsw-alias-markdown-code-block: rgba(22, 26, 34, 0.55);
-  --dsw-alias-markdown-inline-code: rgba(26, 30, 38, 0.60);
-
-  --dsw-alias-toast-bg: rgba(30, 38, 50, 0.92);
-  --dsw-alias-tooltip-bg: rgba(22, 26, 34, 0.95);
-}
-
-/* ============================================
-   中央聊天区：父容器全透明，壁纸全显示
-   （子区域保持现状：气泡/输入卡半透明不变）
-   ============================================ */
-body[data-dsh-skin] .wSkVaW_root {
-  background: transparent;
-}
-
-/* ============================================
-   布局框架（frame）：全透明，壁纸全显示
-   （侧栏/详情列有自己的背景，不受影响）
-   ============================================ */
-body[data-dsh-skin] .pI_x6G_frame {
-  background: transparent;
-}
-
-/* 滚动区内边距收窄到 16px，让消息内容正好 748px（默认 32px 会挤窄） */
-body[data-dsh-skin] .EvIC1a_scroll {
-  padding: 16px;
-}
-
-/* ============================================
-   会话统计条：放宽到与座位同宽（780px），
-   内边距收窄，完整展示统计文本不被省略号截断
-   ============================================ */
-body[data-dsh-skin] .EvIC1a_turnStatus {
-  max-width: var(--dsh-composer-card-max-width);
-  padding: 4px 4px 0;
-  font-size: 12px;
-}
-
-/* 原生"回到底部"按钮：滚动容器保持为 scrollBody，原生显隐逻辑
-   有效；仅改为水平居中、贴输入框上方 16px（默认右对齐且按
-   152px 输入框高度预留偏移） */
-body[data-dsh-skin] [data-conversation-scroll] .EvIC1a_toBottomSlot {
-  bottom: 16px;
-  justify-content: center;
-  padding-right: 0;
-}
-
-/* ============================================
-   顶部标题栏：透明度与中间文本区一致
-   ============================================ */
-body[data-dsh-skin] .wSkVaW_header {
-  background: var(--dsw-specific-input-major);
-}
-
-/* ============================================
-   侧边栏：透明度与中间文本区一致
-   （布局列 .pI_x6G_sidebarCol 保持透明，
-    侧栏根 .hHd-Xa_root 使用 input-major）
-   ============================================ */
-body[data-dsh-skin] .pI_x6G_sidebarCol {
-  background: transparent;
-}
-body[data-dsh-skin] .hHd-Xa_root {
-  background: var(--dsw-specific-input-major);
-}
-
-/* ============================================
-   会话列表底部渐隐条：渐隐进 sidebar-fill 颜色，
-   在壁纸上形成白色边界，去掉
-   ============================================ */
-body[data-dsh-skin] .qDHVXG_fade {
-  display: none;
-}
 
 /* ============================================
    侧栏折叠按钮微调
    ============================================ */
 /* 展开态：折叠按钮略左移，不贴右缘 */
-body[data-dsh-skin] .hHd-Xa_logoRow > button:last-child {
+.hHd-Xa_logoRow > button:last-child {
   margin-right: 7px;
 }
 
-
-
 /* 侧边栏归档入口按钮（添加工作区右侧） */
-body[data-dsh-skin] button[data-skin-archive-btn] {
+button[data-skin-archive-btn] {
   /* 与原生 iconButton 一致：28px 圆形、label-secondary、hover 同款背景 */
   position: relative;
   display: inline-flex;
@@ -218,14 +31,14 @@ body[data-dsh-skin] button[data-skin-archive-btn] {
   flex: none;
   transition: background 0.12s ease;
 }
-body[data-dsh-skin] button[data-skin-archive-btn] svg {
+button[data-skin-archive-btn] svg {
   display: block;
 }
-body[data-dsh-skin] button[data-skin-archive-btn]:hover {
+button[data-skin-archive-btn]:hover {
   background: var(--dsw-alias-interactive-bg-hover);
 }
 
-body[data-dsh-skin] button[data-skin-archive-btn]:active {
+button[data-skin-archive-btn]:active {
   transform: scale(0.92);
 }
 /* ============================================
@@ -233,11 +46,11 @@ body[data-dsh-skin] button[data-skin-archive-btn]:active {
  |  原位覆盖工作区列表区域 · 布局与原生树一致
  |  ============================================ */
 /* 工具行解除 60px 宽度限制：第 4 个（归档）按钮不被裁剪，整体左移排列 */
-body[data-dsh-skin] [class*="_headerActions"] {
+[class*="_headerActions"] {
   max-width: none !important;
 }
 /* 覆盖层容器：absolute 铺满树区域 */
-body[data-dsh-skin] [data-skin-archive-view] {
+[data-skin-archive-view] {
   position: absolute;
   inset: 0;
   display: flex;
@@ -247,7 +60,7 @@ body[data-dsh-skin] [data-skin-archive-view] {
   background: transparent;
   overflow: hidden;
 }
-body[data-dsh-skin] .skin-archive {
+.skin-archive {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -255,12 +68,12 @@ body[data-dsh-skin] .skin-archive {
   color: #2b4259;
 }
 
-body[data-dsh-skin] .skin-menu-mask {
+.skin-menu-mask {
   position: fixed;
   inset: 0;
   z-index: 2147483010;
 }
-body[data-dsh-skin] .skin-menu {
+.skin-menu {
   position: fixed;
   z-index: 2147483011;
   min-width: 132px;
@@ -273,7 +86,7 @@ body[data-dsh-skin] .skin-menu {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
-body[data-dsh-skin] .skin-menu button {
+.skin-menu button {
   display: block;
   width: 100%;
   text-align: left;
@@ -285,13 +98,13 @@ body[data-dsh-skin] .skin-menu button {
   border-radius: 7px;
   cursor: pointer;
 }
-body[data-dsh-skin] .skin-menu button:hover {
+.skin-menu button:hover {
   background: var(--dsw-alias-interactive-bg-hover, rgba(90, 159, 212, 0.12));
 }
-body[data-dsh-skin] .skin-menu button.danger {
+.skin-menu button.danger {
   color: var(--dsw-alias-danger, #c05a5a);
 }
-body[data-dsh-skin] .skin-menu button.danger:hover {
+.skin-menu button.danger:hover {
   background: rgba(200, 90, 90, 0.1);
 }
 
@@ -300,7 +113,7 @@ body[data-dsh-skin] .skin-menu button.danger:hover {
  |  （行/分组行结构与原生一致：hover 背景、
  |   分组行 hover 文件夹→箭头、会话行 hover 时间隐藏）
  |  ============================================ */
-body[data-dsh-skin] .skin-archive-error {
+.skin-archive-error {
   padding: 8px 10px;
   font-size: 12px;
   color: var(--dsw-alias-state-error-primary, #a05a5a);
@@ -308,28 +121,28 @@ body[data-dsh-skin] .skin-archive-error {
   border-bottom: 1px solid rgba(200, 90, 90, 0.15);
   flex: none;
 }
-body[data-dsh-skin] .skin-archive-list {
+.skin-archive-list {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
   padding: 0 4px 16px;
 }
-body[data-dsh-skin] .skin-archive-group {
+.skin-archive-group {
   position: relative;
 }
-body[data-dsh-skin] .skin-archive-group + .skin-archive-group {
+.skin-archive-group + .skin-archive-group {
   margin-top: 4px;
 }
-body[data-dsh-skin] .skin-archive-group > * + * {
+.skin-archive-group > * + * {
   margin-top: 2px;
 }
-body[data-dsh-skin] .skin-archive-empty {
+.skin-archive-empty {
   color: var(--dsw-alias-label-tertiary);
   padding: 16px 12px;
   font-size: 13px;
 }
 /* 分组行：对齐原生 projectRow */
-body[data-dsh-skin] .skin-archive-group-title {
+.skin-archive-group-title {
   box-sizing: border-box;
   align-items: center;
   height: 34px;
@@ -342,10 +155,10 @@ body[data-dsh-skin] .skin-archive-group-title {
   border-radius: 8px;
   transition: background 0.1s ease;
 }
-body[data-dsh-skin] .skin-archive-group-title:hover {
+.skin-archive-group-title:hover {
   background: var(--dsw-alias-interactive-bg-hover);
 }
-body[data-dsh-skin] .skin-archive-folder {
+.skin-archive-folder {
   width: 16px;
   height: 20px;
   color: var(--dsw-alias-label-tertiary);
@@ -355,7 +168,7 @@ body[data-dsh-skin] .skin-archive-folder {
   display: inline-flex;
 }
 /* 箭头：默认隐藏，hover 时显示并隐藏文件夹（同原生） */
-body[data-dsh-skin] .skin-archive-chevron {
+.skin-archive-chevron {
   width: 16px;
   height: 20px;
   color: var(--dsw-alias-label-tertiary);
@@ -364,21 +177,21 @@ body[data-dsh-skin] .skin-archive-chevron {
   align-items: center;
   display: none;
 }
-body[data-dsh-skin] .skin-archive-group-title:hover .skin-archive-chevron {
+.skin-archive-group-title:hover .skin-archive-chevron {
   display: inline-flex;
 }
-body[data-dsh-skin] .skin-archive-group-title:hover .skin-archive-folder {
+.skin-archive-group-title:hover .skin-archive-folder {
   display: none;
 }
-body[data-dsh-skin] .skin-archive-arrow {
+.skin-archive-arrow {
   display: inline-flex;
   transform: rotate(0deg);
   transition: transform 0.15s var(--ds-ease-in-out, ease);
 }
-body[data-dsh-skin] .skin-archive-arrow.open {
+.skin-archive-arrow.open {
   transform: rotate(90deg);
 }
-body[data-dsh-skin] .skin-archive-project {
+.skin-archive-project {
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
@@ -386,11 +199,11 @@ body[data-dsh-skin] .skin-archive-project {
   line-height: 20px;
   overflow: hidden;
 }
-body[data-dsh-skin] .skin-archive-group-title .skin-archive-title {
+.skin-archive-group-title .skin-archive-title {
   margin: 0;
 }
 /* 会话行：对齐原生 sessionRow */
-body[data-dsh-skin] .skin-archive-item {
+.skin-archive-item {
   cursor: pointer;
   user-select: none;
   color: var(--dsw-alias-label-primary);
@@ -407,11 +220,11 @@ body[data-dsh-skin] .skin-archive-item {
     opacity: 0;
   }
 }
-body[data-dsh-skin] .skin-archive-item:hover,
-body[data-dsh-skin] .skin-archive-item.menu-open {
+.skin-archive-item:hover,
+.skin-archive-item.menu-open {
   background: var(--dsw-alias-interactive-bg-hover);
 }
-body[data-dsh-skin] .skin-archive-item .skin-archive-title {
+.skin-archive-item .skin-archive-title {
   flex: 1;
   margin: 0 6px 0 4px;
   text-overflow: ellipsis;
@@ -421,29 +234,29 @@ body[data-dsh-skin] .skin-archive-item .skin-archive-title {
   line-height: 20px;
   overflow: hidden;
 }
-body[data-dsh-skin] .skin-archive-item .skin-archive-time {
+.skin-archive-item .skin-archive-time {
   color: var(--dsw-alias-label-tertiary);
   flex: none;
   font-size: 12px;
   line-height: 20px;
   white-space: nowrap;
 }
-body[data-dsh-skin] .skin-archive-item .skin-archive-actions {
+.skin-archive-item .skin-archive-actions {
   flex: none;
   align-items: center;
   gap: 12px;
   display: none;
 }
-body[data-dsh-skin] .skin-archive-item:hover .skin-archive-actions,
-body[data-dsh-skin] .skin-archive-item.menu-open .skin-archive-actions {
+.skin-archive-item:hover .skin-archive-actions,
+.skin-archive-item.menu-open .skin-archive-actions {
   display: inline-flex;
 }
 /* hover 时时间隐藏（同原生） */
-body[data-dsh-skin] .skin-archive-item:hover .skin-archive-time,
-body[data-dsh-skin] .skin-archive-item.menu-open .skin-archive-time {
+.skin-archive-item:hover .skin-archive-time,
+.skin-archive-item.menu-open .skin-archive-time {
   display: none;
 }
-body[data-dsh-skin] .skin-archive-more {
+.skin-archive-more {
   border: none;
   background: transparent;
   color: var(--dsw-alias-label-secondary, #4a6a8c);
@@ -457,17 +270,16 @@ body[data-dsh-skin] .skin-archive-more {
   padding: 0;
   flex: none;
 }
-body[data-dsh-skin] .skin-archive-more:hover {
+.skin-archive-more:hover {
   background: var(--dsw-alias-interactive-bg-hover, rgba(90, 159, 212, 0.18));
 }
-body[data-dsh-skin] .skin-archive-more:disabled {
+.skin-archive-more:disabled {
   opacity: 0.3;
   cursor: default;
 }
 
-
 /* 归档按钮气泡（fixed 于 body，同原生 Tooltip 机制） */
-body[data-dsh-skin] .skin-archive-tip {
+.skin-archive-tip {
   position: fixed;
   transform: translateX(-50%);
   background: var(--dsw-alias-tooltip-bg, #1f2937);
@@ -481,9 +293,8 @@ body[data-dsh-skin] .skin-archive-tip {
   pointer-events: none;
 }
 
-
 /* 重命名对话框输入框（复刻原生 qDHVXG_renameInput 规则，弹窗壳体用原生 Modal） */
-body[data-dsh-skin] .skin-rename-input {
+.skin-rename-input {
   box-sizing: border-box;
   border: 1px solid var(--dsw-alias-border-l2);
   width: 100%;
@@ -497,10 +308,10 @@ body[data-dsh-skin] .skin-rename-input {
   font-weight: 400;
   line-height: 22px;
 }
-body[data-dsh-skin] .skin-rename-input:disabled {
+.skin-rename-input:disabled {
   color: var(--dsw-alias-label-dimmed);
 }
-body[data-dsh-skin] .skin-rename-error {
+.skin-rename-error {
   color: var(--dsw-alias-state-error-primary);
   margin-top: 8px;
   font-size: 12px;
@@ -508,193 +319,11 @@ body[data-dsh-skin] .skin-rename-error {
 }
 
 /* 删除确认弹窗（复刻原生 qDHVXG_deleteAction / qDHVXG_deleteStatus 规则） */
-body[data-dsh-skin] .skin-delete-action:not(:disabled) {
+.skin-delete-action:not(:disabled) {
   color: var(--dsw-alias-state-error-primary);
 }
-body[data-dsh-skin] .skin-delete-status {
+.skin-delete-status {
   color: var(--dsw-alias-label-secondary);
   font-size: 12px;
   line-height: 18px;
 }
-
-
-
-/* ============================================
-   设置弹窗 · "skin" 设置卡片（rc.7 插件设置卡片）
-   卡片外壳样式对齐内置插件卡片（PluginCard.module.css 的同款值）
-   ============================================ */
-body[data-dsh-skin] [data-skin-settings].skin-settings-card {
-  border: 1px solid var(--dsw-alias-border-l2);
-  background: var(--dsw-alias-bg-layer-3);
-  border-radius: 12px;
-  list-style: none;
-  transition: border-color 0.16s, background 0.16s;
-}
-body[data-dsh-skin] [data-skin-settings].skin-settings-card:hover {
-  border-color: var(--dsw-alias-label-dimmed);
-}
-body[data-dsh-skin] [data-skin-settings].skin-settings-card-open {
-  background: var(--dsw-alias-bg-layer-2);
-  border-color: var(--dsw-alias-label-dimmed);
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-header {
-  appearance: none;
-  width: 100%;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  background: 0 0;
-  border: 0;
-  border-radius: 12px;
-  align-items: center;
-  gap: 12px;
-  padding: 14px 16px;
-  display: flex;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-header:focus-visible {
-  outline: 2px solid var(--dsw-alias-brand-primary);
-  outline-offset: -2px;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-headText {
-  flex-direction: column;
-  flex: 1;
-  gap: 4px;
-  min-width: 0;
-  display: flex;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-name {
-  color: var(--dsw-alias-label-primary);
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.4;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-description {
-  color: var(--dsw-alias-label-tertiary);
-  font-size: 13px;
-  line-height: 1.5;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-chevron {
-  color: var(--dsw-alias-label-tertiary);
-  flex: none;
-  transition: transform 0.16s;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-chevron-open {
-  transform: rotate(180deg);
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-pending {
-  white-space: nowrap;
-  background: var(--dsw-alias-bg-module-platform, rgba(0, 0, 0, 0.06));
-  color: var(--dsw-alias-label-secondary);
-  border-radius: 999px;
-  flex: none;
-  padding: 1px 8px;
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 17px;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-body {
-  border-top: 1px solid var(--dsw-alias-border-l2);
-  margin: 0 16px;
-  padding-bottom: 8px;
-  flex-direction: column;
-  gap: 12px;
-  display: flex;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-row {
-  flex-direction: column;
-  gap: 4px;
-  display: flex;
-}
-
-body[data-dsh-skin] [data-skin-settings] .skin-settings-label {
-  color: var(--dsw-alias-label-primary);
-  font-size: 13px;
-  line-height: 20px;
-}
-
-body[data-dsh-skin] [data-skin-settings] .skin-settings-controls {
-  align-items: center;
-  gap: 12px;
-  display: flex;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-pick {
-  appearance: none;
-  font: inherit;
-  cursor: pointer;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
-  padding: 4px 12px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--dsw-alias-label-secondary);
-  background: 0 0;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-pick:hover {
-  color: var(--dsw-alias-label-primary);
-  border-color: var(--dsw-alias-label-dimmed);
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-pick:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-body[data-dsh-skin] [data-skin-settings] input[type="text"] {
-  box-sizing: border-box;
-  width: 100%;
-  height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--dsw-alias-border-l2);
-  border-radius: 8px;
-  background: var(--dsw-alias-bg-layer-2);
-  color: var(--dsw-alias-label-primary);
-  font: inherit;
-  font-size: 13px;
-}
-
-body[data-dsh-skin] [data-skin-settings] .skin-settings-hint {
-  color: var(--dsw-alias-label-tertiary);
-  font-size: 12px;
-  line-height: 18px;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-footer {
-  border-top: 1px solid var(--dsw-alias-border-l2);
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 0 4px;
-  display: flex;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-failed {
-  min-width: 0;
-  color: var(--dsw-alias-state-error-primary);
-  flex: 1;
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-discard,
-body[data-dsh-skin] [data-skin-settings] .skin-settings-save {
-  appearance: none;
-  font: inherit;
-  cursor: pointer;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 5px 14px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-discard {
-  border-color: var(--dsw-alias-border-l2);
-  color: var(--dsw-alias-label-secondary);
-  background: 0 0;
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-save {
-  background: var(--dsw-alias-button-primary-fill, #5a9fd4);
-  color: var(--dsw-alias-button-primary-invert, #ffffff);
-}
-body[data-dsh-skin] [data-skin-settings] .skin-settings-save:disabled,
-body[data-dsh-skin] [data-skin-settings] .skin-settings-discard:disabled {
-  opacity: 0.55;
-  cursor: default;
-}
-

@@ -1,3 +1,3 @@
 - insert:
-    - id: dsh-web-ui-skin
-      name: '@crack/dsh-web-ui-skin'
+    - id: dsh-archive
+      name: '@crack/dsh-archive'

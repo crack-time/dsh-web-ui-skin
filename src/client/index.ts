@@ -2,25 +2,11 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArchiveView } from './archive.js'
-import {
-  SKIN_CONFIG_URL,
-  SKIN_DEFAULTS,
-  createSkinCardStore,
-  installSkinSettingsCard,
-} from './settings-card.js'
-import {
-  currentPicked,
-  disposePicked,
-  initPicked,
-  subscribePicked,
-} from './local-wallpaper.js'
 
 /**
  * Client entry for the Pastoral Cottage skin.
  *
- * Logic mirrors the original hand-written bundle (build-client.js) exactly:
- * wallpaper pinning + theme-overwrite guard, composer-seat relocation, and
- * scroll pinning across session switches. The wallpaper is served by the
+ * Wallpaper pinning + theme-overwrite guard. The wallpaper is served by the
  * host route registered in src/index.ts; CSS is inlined at build time by the
  * tsdown plugin (same <style data-plugin> injection the old bundle emitted).
  */
@@ -30,7 +16,7 @@ import {
 declare const css: string
 
 // Wallpaper served by the host route (src/index.ts registers it).
-const BG_URL = '/plugins/@crack/dsh-web-ui-skin/bg.jpg'
+const BG_URL = '/plugins/@crack/dsh-archive/bg.jpg'
 const BG =
   `url("${BG_URL}") center center / cover no-repeat fixed #3a6ea5`
 
@@ -39,15 +25,6 @@ const BG =
  * refreshed on every `settings/document-updated` wire event, so dsh rc.7's
  * "skin" settings card edits apply live (no page reload).
  */
-interface SkinSettings {
-  wallpaperUrl?: string
-  archiveButton?: boolean
-}
-let settings: SkinSettings = {}
-/** Whether the sidebar archive entry may be shown (settings.archiveButton). */
-let archiveEnabled = true
-/** Snapshot source for the settings-dialog card (kept in sync on refresh). */
-const cardStore = createSkinCardStore()
 
 /** Client-side service inject declaration — the services this plugin reads
  * through ctx (locale, slots, remote). This is the runtime declaration the
@@ -59,52 +36,6 @@ export const inject = ['locale', 'slots', 'remote']
 export function apply(ctx: ClientContext): void {
   const body = document.body
   const root = document.getElementById('root')!
-  body.dataset.dshSkin = ''
-  // Settings-dialog card: registers the locale dict and the `settings.plugin.item` slot entry.
-  installSkinSettingsCard(ctx, cardStore)
-  // Inline style beats CSS rules. DSH theme may re-set root.style.background
-  // on token overrides, so we guard with a MutationObserver.
-  let currentBg = BG
-  function applyBg() {
-    root.style.background = currentBg
-  }
-  /** Apply all settings-card knobs to the live page. */
-  function applyConfig() {
-    // Wallpaper source precedence: picked local file (zero-copy handle from
-    // the File System Access API) → settings URL → bundled asset.
-    // Adaptive fit: once the image's real dimensions are known, use `cover`
-    // only when its aspect ratio is close to the viewport's (fills the
-    // screen, tiny crop); otherwise switch to `contain` so the WHOLE picture
-    // stays visible — no more truncation for portrait/panorama uploads.
-    const url = (settings.wallpaperUrl ?? '').trim()
-    const src = currentPicked()?.blobUrl ?? (url || BG_URL)
-    const applyBgSrc = (fit: 'cover' | 'contain') => {
-      currentBg = `url("${src}") center center / ${fit} no-repeat fixed #3a6ea5`
-      applyBg()
-    }
-    const probe = new Image()
-    probe.onload = () => {
-      const winAspect = window.innerWidth / Math.max(1, window.innerHeight)
-      const imgAspect = probe.naturalWidth / Math.max(1, probe.naturalHeight)
-      const fit =
-        imgAspect < winAspect * 0.85 || imgAspect > winAspect * 1.18
-          ? 'contain'
-          : 'cover'
-      applyBgSrc(fit)
-    }
-    probe.onerror = () => applyBgSrc('cover')
-    probe.src = src
-    archiveEnabled = settings.archiveButton !== false
-  }
-  applyConfig()
-  // Picked local wallpaper (File System Access API handle): restore it on
-  // boot and re-apply whenever the card picks or clears one.
-  subscribePicked(() => applyConfig())
-  void initPicked()
-  const obs = new MutationObserver(() => {
-    if (root.style.background !== currentBg) applyBg()
-  })
-  obs.observe(root, { attributes: true, attributeFilter: ['style'] })
 
   // Sidebar archive entry: a button injected right after the native
   // "Add workspace" button (headerActions row). It toggles the in-place
@@ -158,36 +89,8 @@ export function apply(ctx: ClientContext): void {
     }
   }
 
-  // ChatView keeps its instance across session switches (slot key is the
-  // registration entry, not the session id), so dsh's "first open" scroll
-  // logic never runs again and switching conversations inherits the old
-  // scroll position. Detect the switch via the header breadcrumbs and
-  // settle at the bottom once; afterwards only keep the list pinned
-  // while the user is already at the bottom (streaming content).
-  let lastCrumbs: string | null = null
   function onDomChange() {
-    if (archiveEnabled) ensureArchiveButton()
-    else {
-      // Settings card turned the archive entry off: drop the button (and any
-      // open overlay) until it is turned back on.
-      document.querySelectorAll('[data-skin-archive-btn]').forEach((el) => el.remove())
-      closeArchiveView()
-    }
-    const chatActive = !!document.querySelector(
-      '.wSkVaW_scrollBody .EvIC1a_root',
-    )
-    const crumb = document.querySelector('.wSkVaW_crumbs')
-    const crumbText = crumb ? crumb.textContent : ''
-    const sb = document.querySelector('.wSkVaW_scrollBody')
-    if (chatActive && sb) {
-      if (crumbText !== lastCrumbs) {
-        // Session switched (or first load): settle at the bottom once.
-        lastCrumbs = crumbText
-        ;(sb as HTMLElement).scrollTop = (sb as HTMLElement).scrollHeight
-      }
-    } else if (!chatActive) {
-      lastCrumbs = crumbText
-    }
+    ensureArchiveButton()
   }
   onDomChange()
   // Archive view: mounted IN PLACE over the workspace tree region (the same
@@ -262,55 +165,12 @@ export function apply(ctx: ClientContext): void {
     attributeFilter: ['data-phase', 'data-conversation-composer-overlay'],
   })
 
-  // Settings card: pull the resolved config once, then live-apply on every
-  // `settings/document-updated` wire event (emitted by the host after a card
-  // write commits).
-  async function refreshConfig() {
-    // The host route may not be registered yet when the browser bundle boots,
-    // so back off and retry a few times before giving up; the wire
-    // subscription below also re-fetches on every `settings/document-updated`.
-    for (let attempt = 0; ; attempt++) {
-      try {
-        const res = await fetch(SKIN_CONFIG_URL, { cache: 'no-store' })
-        if (!res.ok) throw new Error('config endpoint: ' + res.status)
-        settings = (await res.json()) as SkinSettings
-        applyConfig()
-        onDomChange()
-        cardStore.set({
-          loaded: true,
-          wallpaperUrl: settings.wallpaperUrl ?? SKIN_DEFAULTS.wallpaperUrl,
-          archiveButton: settings.archiveButton ?? SKIN_DEFAULTS.archiveButton,
-        })
-        return
-      } catch {
-        if (attempt >= 3) return
-        await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt))
-      }
-    }
-  }
-  void refreshConfig()
-  let offRemote: (() => void) | null = null
-  try {
-    const remote = ctx.get('remote') as
-      | { $on: (event: string, listener: () => void) => () => void }
-      | undefined
-    if (remote) {
-      offRemote = remote.$on('settings/document-updated', () => {
-        void refreshConfig()
-      })
-    }
-  } catch {}
-
   try {
     ctx.effect(() => () => {
-      obs.disconnect()
       obs2.disconnect()
-      offRemote?.()
-      disposePicked()
-      delete body.dataset.dshSkin
-      root.style.removeProperty('background')
+
       document.querySelectorAll('[data-skin-archive-btn]').forEach((el) => el.remove())
       closeArchiveView()
-    }, 'dsh-web-ui-skin: background')
+    }, 'dsh-archive: archive')
   } catch {}
 }

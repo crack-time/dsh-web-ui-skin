@@ -30,8 +30,8 @@ import z from '@deepseek-ai/schemastery'
 import { settingsNamespace, type SettingsScope } from '@deepseek-ai/dsh-settings'
 
 const BG_PATH = fileURLToPath(new URL('../assets/bg.jpg', import.meta.url))
-const BG_ROUTE = '/plugins/@crack/dsh-web-ui-skin/bg.jpg'
-const API_PREFIX = '/plugins/@crack/dsh-web-ui-skin/api'
+const BG_ROUTE = '/plugins/@crack/dsh-archive/bg.jpg'
+const API_PREFIX = '/plugins/@crack/dsh-archive/api'
 
 /**
  * Settings card for this skin (surfaced by dsh rc.7's settings page under
@@ -379,7 +379,7 @@ function apply(ctx: Context) {
       } satisfies WebRoute),
     ]
     return () => disposers.forEach((dispose) => dispose())
-  }, 'dsh-web-ui-skin: wallpaper + archive api')
+  }, 'dsh-archive: api')
 }
 
 export { apply, inject }

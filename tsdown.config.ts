@@ -5,7 +5,7 @@ import { defineConfig } from 'tsdown'
 import { skinInlinePlugin } from './scripts/skin-inline-plugin.mjs'
 
 export default defineConfig({
-  name: '@crack/dsh-web-ui-skin/client',
+  name: '@crack/dsh-archive/client',
   entry: { client: 'lib/client/index.js' },
   outDir: 'lib',
   format: 'cjs',
@@ -23,7 +23,7 @@ export default defineConfig({
   plugins: [skinInlinePlugin()],
   outputOptions: {
     entryFileNames: 'client.js',
-    banner: 'window.__ModuleLoader__.load({ id: "@crack/dsh-web-ui-skin", factory: (require) => {',
+    banner: 'window.__ModuleLoader__.load({ id: "@crack/dsh-archive", factory: (require) => {',
     intro: 'var module = { exports: {} }; var exports = module.exports;',
     footer: 'return module.exports; } });',
   },

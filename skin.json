@@ -14,9 +14,9 @@
   ],
   "accent": "#5a9fd4",
   "bodyAttr": "data-dsh-skin",
-  "package": "@crack/dsh-web-ui-skin",
+  "package": "@crack/dsh-archive",
   "wiring": {
-    "id": "dsh-web-ui-skin",
+    "id": "dsh-archive",
     "bundleWired": true
   },
   "order": 99

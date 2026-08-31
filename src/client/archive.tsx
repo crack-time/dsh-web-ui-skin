@@ -21,7 +21,7 @@ import {
   Modal,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 
-const API = '/plugins/@crack/dsh-web-ui-skin/api'
+const API = '/plugins/@crack/dsh-archive/api'
 const VIEW_KEY = 'dsh.workspace.view.v5'
 
 /** No-op for the optional onOpenSession prop. */

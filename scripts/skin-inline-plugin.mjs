@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const CSS_PATH = resolve(__dirname, '../src/client/skin.css')
-const PLUGIN_ID = '@crack/dsh-web-ui-skin'
+const PLUGIN_ID = '@crack/dsh-archive'
 const CSS_TAG_ID = PLUGIN_ID + '/skin.css'
 
 export function skinInlinePlugin() {

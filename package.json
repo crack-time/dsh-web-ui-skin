@@ -1,6 +1,6 @@
 {
-  "name": "@crack/dsh-web-ui-skin",
-  "description": "Pastoral cottage skin for the DSH web GUI: full-screen wallpaper with frosted-glass panels",
+  "name": "@crack/dsh-archive",
+  "description": "Session archive plugin for DSH web GUI",
   "version": "0.1.0",
   "type": "module",
   "main": "lib/index.js",
