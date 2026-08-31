@@ -147,47 +147,9 @@ body[data-dsh-skin] .pI_x6G_frame {
   background: transparent;
 }
 
-/* 消息文本列：背景挂在滚动容器（scrollBody）上，
-   左右边缘 2px 渐变淡出；宽度由 DSH 原生控制 */
-body[data-dsh-skin]:not(:has(.qBU-ya_root)) .wSkVaW_scrollBody {
-  width: 100%;
-  overflow-x: hidden;
-  background-color: transparent;
-  background-image: linear-gradient(to right,
-    transparent 0,
-    var(--dsw-specific-input-major) 2px,
-    var(--dsw-specific-input-major) calc(100% - 2px),
-    transparent 100%);
-}
-
-/* 新建对话（hero 欢迎态）：移除渐变背景 */
-body[data-dsh-skin] .wSkVaW_root[data-phase="hero"] .wSkVaW_scrollBody {
-  background: transparent;
-}
-
 /* 滚动区内边距收窄到 16px，让消息内容正好 748px（默认 32px 会挤窄） */
 body[data-dsh-skin] .EvIC1a_scroll {
   padding: 16px;
-}
-
-/* ============================================
-   输入框座位（仅激活态：整条 = 统计条 + 输入卡）：
-   由皮肤 JS 移出滚动容器（成为 scrollBody 之后的兄弟），
-   宽度与面板一致并居中；滚动视口下边缘 = 输入框顶部，
-   文本不会穿到其后；整条共用文本列同款白色背景。
-   hero/其他阶段不约束，保持 dsh 原布局
-   ============================================ */
-body[data-dsh-skin] .wSkVaW_root[data-phase="active"] .wSkVaW_composerSeat {
-  width: 100%;
-  /* 比消息面板宽 32px（= 卡片左右内边距），让输入卡恢复 dsh 默认 780px */
-  max-width: calc(var(--dsh-composer-card-max-width) + 2 * var(--dsh-composer-side-clearance));
-  margin: 0 auto;
-  background-color: transparent;
-  background-image: linear-gradient(to right,
-    transparent 0,
-    var(--dsw-specific-input-major) 2px,
-    var(--dsw-specific-input-major) calc(100% - 2px),
-    transparent 100%);
 }
 
 /* ============================================
