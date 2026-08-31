@@ -30,13 +30,11 @@ import {
 /** The three knobs the card edits — keep in sync with the host schema. */
 export interface SkinSettings {
   wallpaperUrl: string
-  glassOpacity: number
   archiveButton: boolean
 }
 
 export const SKIN_DEFAULTS: SkinSettings = {
   wallpaperUrl: '',
-  glassOpacity: 0.48,
   archiveButton: true,
 }
 

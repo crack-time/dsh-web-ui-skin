@@ -24,13 +24,10 @@ body[data-dsh-skin] {
   --dsw-alias-brand-text: #4a8fc4;
 
   /* 背景：半透明毛玻璃 */
-  /* 毛玻璃强度（0..1）：由设置卡片的 glassOpacity 通过 --skin-glass 覆盖
-     （客户端内联设置；未设置时用各 token 自己的回退值，等于原外观） */
-  --skin-glass: 0.48;
-  --dsw-alias-bg-base: rgba(255, 255, 255, var(--skin-glass, 0.48));
-  --dsw-alias-bg-layer-1: rgba(255, 255, 255, var(--skin-glass, 0.42));
+  --dsw-alias-bg-base: rgba(255, 255, 255, 0.48);
+  --dsw-alias-bg-layer-1: rgba(255, 255, 255, 0.42);
   --dsw-alias-bg-layer-2: rgba(250, 249, 247, 0.90);
-  --dsw-alias-bg-layer-3: rgba(240, 237, 230, var(--skin-glass, 0.48));
+  --dsw-alias-bg-layer-3: rgba(240, 237, 230, 0.48);
   --dsw-alias-bg-overlay: rgba(255, 255, 255, 0.68);
   --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.45);
 
@@ -57,10 +54,10 @@ body[data-dsh-skin] {
   --dsw-alias-button-contrast-fill: #3a6ea5;
 
   /* 侧边栏 */
-  --dsw-specific-sidebar-fill: rgba(248, 245, 240, var(--skin-glass, 0.42));
+  --dsw-specific-sidebar-fill: rgba(248, 245, 240, 0.42);
 
   /* 聊天气泡 */
-  --dsw-specific-bubble: rgba(255, 255, 255, var(--skin-glass, 0.48));
+  --dsw-specific-bubble: rgba(255, 255, 255, 0.48);
   --dsw-specific-bubble-highlight: rgba(90, 159, 212, 0.12);
 
   /* 输入框 */
@@ -87,10 +84,10 @@ body[data-dsh-skin][data-ds-dark-theme] {
   --dsw-alias-brand-primary-invert: #1a2a3a;
   --dsw-alias-brand-text: #7ab8e8;
 
-  --dsw-alias-bg-base: rgba(18, 22, 30, var(--skin-glass, 0.52));
-  --dsw-alias-bg-layer-1: rgba(22, 26, 34, var(--skin-glass, 0.50));
+  --dsw-alias-bg-base: rgba(18, 22, 30, 0.52);
+  --dsw-alias-bg-layer-1: rgba(22, 26, 34, 0.50);
   --dsw-alias-bg-layer-2: rgba(26, 30, 38, 0.90);
-  --dsw-alias-bg-layer-3: rgba(30, 34, 42, var(--skin-glass, 0.46));
+  --dsw-alias-bg-layer-3: rgba(30, 34, 42, 0.46);
   --dsw-alias-bg-overlay: rgba(20, 24, 32, 0.72);
   --dsw-alias-bg-mask-1: rgba(0, 0, 0, 0.55);
 
@@ -112,8 +109,8 @@ body[data-dsh-skin][data-ds-dark-theme] {
   --dsw-alias-button-elevated-fill: rgba(30, 34, 42, 0.62);
   --dsw-alias-button-contrast-fill: #7ab8e8;
 
-  --dsw-specific-sidebar-fill: rgba(22, 26, 34, var(--skin-glass, 0.52));
-  --dsw-specific-bubble: rgba(26, 30, 38, var(--skin-glass, 0.50));
+  --dsw-specific-sidebar-fill: rgba(22, 26, 34, 0.52);
+  --dsw-specific-bubble: rgba(26, 30, 38, 0.50);
   --dsw-specific-bubble-highlight: rgba(122, 184, 232, 0.12);
   --dsw-specific-input-major: rgba(18, 22, 30, 0.85);
   --dsw-specific-menu: #161a22;

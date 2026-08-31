@@ -19,7 +19,6 @@ import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
 /** The three knobs the card edits — keep in sync with the host schema. */
 export interface SkinSettings {
     wallpaperUrl: string;
-    glassOpacity: number;
     archiveButton: boolean;
 }
 export declare const SKIN_DEFAULTS: SkinSettings;
