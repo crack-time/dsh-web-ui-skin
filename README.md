@@ -26,13 +26,11 @@
 
 ## 安装
 
-插件通过符号链接安装到 dsh web profile：
-
 ```powershell
-# 1. 在 profile 的 node_modules 中链接插件目录
-cmd /c mklink /J "C:\Users\<you>\.dsh\profiles\web\node_modules\@crack\dsh-archive" "E:\path\to\dsh-archive"
+# 1. 链接本地包到 dsh web profile（一次性）
+dsh plugin --profile web add "link:E:\path\to\dsh-archive"
 
-# 2. 在 profile patch 中注册插件行
+# 2. 在 profile patch 中注册插件
 #    编辑 C:\Users\<you>\.dsh\profiles\web\cordis.patch.yml，追加：
 #    - insert:
 #        - id: archive
@@ -57,9 +55,14 @@ pnpm run typecheck    # 类型检查
 
 ## 卸载
 
-1. 删除 `cordis.patch.yml` 中的 `dsh-archive` 注册行
-2. 删除 profile node_modules 中的符号链接
-3. 重启 dsh web
+```powershell
+# 1. 从 profile 中移除插件
+dsh plugin --profile web remove @crack/dsh-archive
+
+# 2. 删除 cordis.patch.yml 中的 archive 注册行
+
+# 3. 重启 dsh web
+```
 
 ## 项目结构
 
