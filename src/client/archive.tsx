@@ -20,9 +20,22 @@ import {
   IconTriangleRightFill14,
   Modal,
 } from '@deepseek-ai/dsh-client-ui-primitives'
+import { ARCHIVE_LOCALE, formatText, type ArchiveTextKey } from './archive-locale.js'
 
 const API = '/plugins/@crack/dsh-archive/api'
 const VIEW_KEY = 'dsh.workspace.view.v5'
+
+/** Fallback translate — reads from ARCHIVE_LOCALE directly when no DSH t is available. */
+const LANG: 'zh' | 'en' =
+  typeof navigator !== 'undefined' && navigator.language && navigator.language.toLowerCase().startsWith('zh')
+    ? 'zh'
+    : 'en'
+
+function tFallback(key: ArchiveTextKey, vars?: Record<string, string | number>): string {
+  const dict = ARCHIVE_LOCALE[LANG]
+  const template = dict[key] ?? key
+  return vars ? formatText(template, vars) : template
+}
 
 /** No-op for the optional onOpenSession prop. */
 const NOOP = (): void => undefined
@@ -97,7 +110,7 @@ function writeGroupExpansion(key: string, expanded: boolean): void {
 
 async function getArchived(): Promise<ArchivedData> {
   const res = await fetch(API + '/archived')
-  if (!res.ok) throw new Error('加载归档列表失败')
+  if (!res.ok) throw new Error(tFallback('loadFailed'))
   const data = (await res.json()) as Partial<ArchivedData>
   return { groups: data.groups ?? [], ungrouped: data.ungrouped ?? [] }
 }
@@ -110,7 +123,7 @@ async function postAction(action: 'unarchive' | 'delete-session', sessionId: str
   })
   if (!res.ok) {
     const data = (await res.json().catch(() => null)) as { error?: string } | null
-    throw new Error(data?.error ?? '操作失败')
+    throw new Error(data?.error ?? tFallback('actionFailed'))
   }
 }
 
@@ -122,21 +135,21 @@ async function renameSession(sessionId: string, title: string): Promise<void> {
   })
   if (!res.ok) {
     const data = (await res.json().catch(() => null)) as { error?: string } | null
-    throw new Error(data?.error ?? '重命名失败')
+    throw new Error(data?.error ?? tFallback('renameFailed'))
   }
 }
 
 /** Relative time label mirroring the native row time (now/minutes/hours/days). */
-function timeAgo(ms: number | null): string {
+function timeAgo(ms: number | null, tr: (key: string, vars?: Record<string, string | number>) => string): string {
   if (ms === null || ms === undefined) return ''
   const diff = Date.now() - ms
-  if (diff < 60_000) return '刚刚'
+  if (diff < 60_000) return tr('justNow')
   const minutes = Math.floor(diff / 60_000)
-  if (minutes < 60) return `${minutes} 分钟前`
+  if (minutes < 60) return tr('minutesAgo', { n: minutes })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours} 小时前`
+  if (hours < 24) return tr('hoursAgo', { n: hours })
   const days = Math.floor(hours / 24)
-  return `${days} 天前`
+  return tr('daysAgo', { n: days })
 }
 
 
@@ -185,12 +198,14 @@ function SessionRow({
   item,
   busy,
   menuOpen,
+  tr,
   onMenuOpen,
   onOpen,
 }: {
   item: ArchivedItem
   busy: string | null
   menuOpen: boolean
+  tr: (key: string, vars?: Record<string, string | number>) => string
   onMenuOpen: (e: React.MouseEvent) => void
   onOpen: (sessionId: string) => void
 }): React.ReactElement {
@@ -204,12 +219,12 @@ function SessionRow({
       <span className="skin-archive-title" title={item.title}>
         {item.title}
       </span>
-      <span className="skin-archive-time">{timeAgo(item.updatedAt ?? item.createdAt)}</span>
+      <span className="skin-archive-time">{timeAgo(item.updatedAt ?? item.createdAt, tr)}</span>
       <span className="skin-archive-actions">
         <button
           type="button"
           className="skin-archive-more"
-          aria-label="会话操作"
+          aria-label={tr('sessionActions')}
           disabled={busy === item.sessionId}
           onClick={(e) => {
             e.stopPropagation()
@@ -224,12 +239,19 @@ function SessionRow({
 }
 
 export function ArchiveView({
+  t,
   onClose,
   onOpenSession,
 }: {
+  t?: (key: string) => string
   onClose: () => void
   onOpenSession?: (sessionId: string) => void
 }): React.ReactElement {
+  /** Translate function with placeholder support — uses DSH t if available, fallback otherwise. */
+  const tr = (key: string, vars?: Record<string, string | number>): string => {
+    const template = t?.(key) ?? tFallback(key as ArchiveTextKey)
+    return vars ? formatText(template, vars) : template
+  }
   const [data, setData] = useState<ArchivedData>({ groups: [], ungrouped: [] })
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -395,13 +417,14 @@ export function ArchiveView({
     <div className="skin-archive" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       {error && <div className="skin-archive-error">{error}</div>}
       <div className="skin-archive-list">
-        {total === 0 && <div className="skin-archive-empty">暂无归档会话</div>}
+        {total === 0 && <div className="skin-archive-empty">{tr('noArchivedSessions')}</div>}
         {flat !== null &&
           flat.map((item) => (
             <SessionRow
               key={item.sessionId}
               item={item}
               busy={busy}
+              tr={tr}
               menuOpen={menu?.item.sessionId === item.sessionId}
               onMenuOpen={(e) => openMenu(e, item)}
               onOpen={onOpenSession ?? NOOP}
@@ -440,6 +463,7 @@ export function ArchiveView({
                       key={item.sessionId}
                       item={item}
                       busy={busy}
+                      tr={tr}
                       menuOpen={menu?.item.sessionId === item.sessionId}
                       onMenuOpen={(e) => openMenu(e, item)}
                       onOpen={onOpenSession ?? NOOP}
@@ -461,7 +485,7 @@ export function ArchiveView({
                   </span>
                 </span>
                 <span className="skin-archive-project">
-                  <span className="skin-archive-title">未分组</span>
+                  <span className="skin-archive-title">{tr('ungrouped')}</span>
                 </span>
               </div>
               {sortSessions(data.ungrouped).map((item) => (
@@ -469,6 +493,7 @@ export function ArchiveView({
                   key={item.sessionId}
                   item={item}
                   busy={busy}
+                  tr={tr}
                   menuOpen={menu?.item.sessionId === item.sessionId}
                   onMenuOpen={(e) => openMenu(e, item)}
                   onOpen={onOpenSession ?? NOOP}
@@ -482,9 +507,9 @@ export function ArchiveView({
           x={menu.x}
           y={menu.y}
           items={[
-            { id: 'rename', label: '重命名' },
-            { id: 'unarchive', label: '还原会话' },
-            { id: 'delete', label: '删除会话', danger: true },
+            { id: 'rename', label: tr('rename') },
+            { id: 'unarchive', label: tr('restoreSession') },
+            { id: 'delete', label: tr('deleteSession'), danger: true },
           ]}
           onPick={onMenuPick}
           onClose={() => setMenu(null)}
@@ -493,15 +518,15 @@ export function ArchiveView({
       <Modal
         open={renameTarget !== null}
         onClose={closeRename}
-        closeLabel="关闭"
-        title="重命名会话"
+        closeLabel={tr('close')}
+        title={tr('renameSession')}
         footer={
           <>
             <Button variant="outline" disabled={renaming} onClick={closeRename}>
-              取消
+              {tr('cancel')}
             </Button>
             <Button variant="primary" disabled={renameBlocked} onClick={confirmRename}>
-              重命名
+              {tr('confirmRename')}
             </Button>
           </>
         }
@@ -509,7 +534,7 @@ export function ArchiveView({
         <input
           className="skin-rename-input"
           value={renameDraft}
-          aria-label="会话名称"
+          aria-label={tr('sessionName')}
           autoFocus
           disabled={renaming}
           onFocus={(e) => {
@@ -541,17 +566,17 @@ export function ArchiveView({
       <Modal
         open={deleteTarget !== null}
         onClose={closeDelete}
-        closeLabel="关闭"
-        title="删除会话"
+        closeLabel={tr('close')}
+        title={tr('deleteSessionTitle')}
         description={
           deleteTarget !== null
-            ? `将删除「${deleteTarget.title}」，会话日志将被移除，此操作不可恢复。`
+            ? tr('deleteDescription', { title: deleteTarget.title })
             : undefined
         }
         footer={
           <>
             <Button variant="outline" disabled={deleting} onClick={closeDelete}>
-              取消
+              {tr('cancel')}
             </Button>
             <Button
               variant="outline"
@@ -559,14 +584,14 @@ export function ArchiveView({
               disabled={deleting}
               onClick={confirmDelete}
             >
-              删除会话
+              {tr('confirmDelete')}
             </Button>
           </>
         }
       >
         {deleting && (
           <div className="skin-delete-status" role="status">
-            正在删除会话…
+            {tr('deleting')}
           </div>
         )}
         {deleteError !== null && (

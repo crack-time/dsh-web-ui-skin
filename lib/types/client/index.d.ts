@@ -1,13 +1,26 @@
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
 /**
- * Resolved skin settings, read from the host /api/config endpoint and
- * refreshed on every `settings/document-updated` wire event, so dsh rc.7's
- * "skin" settings card edits apply live (no page reload).
+ * Client entry for the Archive plugin.
+ *
+ * Registers the archive button in the sidebar, the archive view overlay,
+ * and the session ID badge in the header.
+ * Locale dictionary is registered for the 'dsh-archive' namespace.
  */
-/** Client-side service inject declaration — the services this plugin reads
- * through ctx (locale, slots, remote). This is the runtime declaration the
- * ModuleLoader wires; package.json dsh.client.inject is the loader's graph
- * metadata / access guard and lists provider module names — the two lists are
- * different things and are intentionally not identical. */
+type TranslateFn = (key: string) => string;
+type LocaleRuntime = {
+    register(namespace: string, dict: Record<string, Record<string, string>>): void | Promise<void>;
+    bind(namespace: string): TranslateFn;
+    getLocale(): {
+        active: string;
+    };
+    subscribe(fn: () => void): () => void;
+};
+declare module '@deepseek-ai/cordis' {
+    interface Context {
+        locale?: LocaleRuntime;
+    }
+}
+/** Client-side service inject declaration. */
 export declare const inject: string[];
 export declare function apply(ctx: ClientContext): void;
+export {};

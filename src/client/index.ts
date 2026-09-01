@@ -3,40 +3,53 @@ import { createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArchiveView } from './archive.js'
 import { SessionIdBadge } from './session-id-badge.js'
+import { ARCHIVE_LOCALE } from './archive-locale.js'
 
 /**
- * Client entry for the Pastoral Cottage skin.
+ * Client entry for the Archive plugin.
  *
- * Wallpaper pinning + theme-overwrite guard. The wallpaper is served by the
- * host route registered in src/index.ts; CSS is inlined at build time by the
- * tsdown plugin (same <style data-plugin> injection the old bundle emitted).
- */
-// css is provided by the build-time banner (scripts/skin-inline-plugin.mjs)
-// ClientContext is the real client-side cordis Context
-// (re-exported by @deepseek-ai/dsh-client-runtime/client as ClientContext).
-declare const css: string
-
-// Wallpaper served by the host route (src/index.ts registers it).
-const BG_URL = '/plugins/@crack/dsh-archive/bg.jpg'
-const BG =
-  `url("${BG_URL}") center center / cover no-repeat fixed #3a6ea5`
-
-/**
- * Resolved skin settings, read from the host /api/config endpoint and
- * refreshed on every `settings/document-updated` wire event, so dsh rc.7's
- * "skin" settings card edits apply live (no page reload).
+ * Registers the archive button in the sidebar, the archive view overlay,
+ * and the session ID badge in the header.
+ * Locale dictionary is registered for the 'dsh-archive' namespace.
  */
 
-/** Client-side service inject declaration — the services this plugin reads
- * through ctx (locale, slots, remote). This is the runtime declaration the
- * ModuleLoader wires; package.json dsh.client.inject is the loader's graph
- * metadata / access guard and lists provider module names — the two lists are
- * different things and are intentionally not identical. */
+type TranslateFn = (key: string) => string;
+
+type LocaleRuntime = {
+    register(namespace: string, dict: Record<string, Record<string, string>>): void | Promise<void>;
+    bind(namespace: string): TranslateFn;
+    getLocale(): { active: string };
+    subscribe(fn: () => void): () => void;
+};
+
+declare module '@deepseek-ai/cordis' {
+    interface Context {
+        locale?: LocaleRuntime;
+    }
+}
+
+const DICT = 'dsh-archive'
+
+/** Client-side service inject declaration. */
 export const inject = ['locale', 'slots', 'remote']
 
 export function apply(ctx: ClientContext): void {
-  const body = document.body
-  const root = document.getElementById('root')!
+  // Register locale dictionary for the 'dsh-archive' namespace.
+  ctx.locale?.register?.(DICT, ARCHIVE_LOCALE)
+
+  // Bind a stable translate function from DSH locale system.
+  // It reads the active locale at call time, so it automatically
+  // responds to language switches without manual detection.
+  const t: TranslateFn = ctx.locale?.bind?.(DICT) ?? ((key: string) => key)
+
+  /** Fallback translate that reads from ARCHIVE_LOCALE directly,
+   *  used for DOM elements outside the React tree (tooltips, aria-labels). */
+  function tFallback(key: string): string {
+    const active = ctx.locale?.getLocale?.()?.active ?? 'en'
+    const lang: 'zh' | 'en' = active.startsWith('zh') ? 'zh' : 'en'
+    const dict = (ARCHIVE_LOCALE as Record<string, Record<string, string>>)[lang]
+    return dict?.[key] ?? key
+  }
 
   // Sidebar archive entry: a button injected right after the native
   // "Add workspace" button (headerActions row). It toggles the in-place
@@ -50,7 +63,7 @@ export function apply(ctx: ClientContext): void {
     const tip = document.createElement('div')
     tip.className = 'skin-archive-tip'
     // Archive view open → this button switches back to the workspace list.
-    tip.textContent = archiveRoot ? '工作区会话' : '归档会话'
+    tip.textContent = archiveRoot ? tFallback('workspaceSessions') : tFallback('archiveSessions')
     tip.style.left = rect.left + rect.width / 2 + 'px'
     tip.style.top = rect.bottom + 8 + 'px'
     document.body.appendChild(tip)
@@ -75,7 +88,7 @@ export function apply(ctx: ClientContext): void {
         const b = document.createElement('button')
         b.type = 'button'
         b.dataset.skinArchiveBtn = ''
-        b.setAttribute('aria-label', '归档会话')
+        b.setAttribute('aria-label', tFallback('archiveSessions'))
         // Folder icon matching the native IconFolderClose16 (same path).
         b.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path fill="currentColor" transform="translate(1.5 2.429)" d="M5.05582 0.518756L4.50669 0.86654L5.05582 0.518756ZM13 9.4837L13.65 9.4837L13.65 3.53962L13 3.53962L12.35 3.53962L12.35 9.4837L13 9.4837ZM11.3264 1.86603L11.3264 1.21603L6.52313 1.21603L6.52313 1.86603L6.52313 2.51603L11.3264 2.51603L11.3264 1.86603ZM5.58054 1.34727L6.12968 0.999489L5.60495 0.170972L5.05582 0.518756L4.50669 0.86654L5.03141 1.69506L5.58054 1.34727ZM4.11323 1.23058e-13L4.11323 -0.65L1.67359 -0.65L1.67359 5.00699e-14L1.67359 0.65L4.11323 0.65L4.11323 1.23058e-13ZM0 1.67359L-0.65 1.67359L-0.65 9.4837L0 9.4837L0.65 9.4837L0.65 1.67359L0 1.67359ZM11.3264 11.1573L11.3264 10.5073L1.67359 10.5073L1.67359 11.1573L1.67359 11.8073L11.3264 11.8073L11.3264 11.1573ZM0 9.4837L-0.65 9.4837C-0.65 10.767 0.390308 11.8073 1.67359 11.8073L1.67359 11.1573L1.67359 10.5073C1.10828 10.5073 0.65 10.049 0.65 9.4837L0 9.4837ZM1.67359 5.00699e-14L1.67359 -0.65C0.390307 -0.65 -0.65 0.390309 -0.65 1.67359L0 1.67359L0.65 1.67359C0.65 1.10828 1.10828 0.65 1.67359 0.65L1.67359 5.00699e-14ZM5.05582 0.518756L5.60495 0.170972C5.28121 -0.340193 4.71829 -0.65 4.11323 -0.65L4.11323 1.23058e-13L4.11323 0.65C4.27282 0.65 4.4213 0.731715 4.50669 0.86654L5.05582 0.518756ZM6.52313 1.86603L6.52313 1.21603C6.36354 1.21603 6.21507 1.13431 6.12968 0.999489L5.58054 1.34727L5.03141 1.69506C5.35515 2.20622 5.91808 2.51603 6.52313 2.51603L6.52313 1.86603ZM13 3.53962L13.65 3.53962C13.65 2.25634 12.6097 1.21603 11.3264 1.21603L11.3264 1.86603L11.3264 2.51603C11.8917 2.51603 12.35 2.97431 12.35 3.53962L13 3.53962ZM13 9.4837L12.35 9.4837C12.35 10.049 11.8917 10.5073 11.3264 10.5073L11.3264 11.1573L11.3264 11.8073C12.6097 11.8073 13.65 10.767 13.65 9.4837L13 9.4837Z"/></svg>'
         b.addEventListener('click', () => toggleArchiveView())
@@ -135,6 +148,7 @@ export function apply(ctx: ClientContext): void {
     archiveRoot = createRoot(host)
     archiveRoot.render(
       createElement(ArchiveView, {
+        t,
         onClose: closeArchiveView,
         onOpenSession: (id) => {
           try {
