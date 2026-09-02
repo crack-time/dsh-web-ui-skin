@@ -23,11 +23,12 @@ import type { Context } from '@deepseek-ai/cordis'
 import type { WebRoute } from '@deepseek-ai/dsh-host-webserver'
 import type { WorkspaceRegistry } from '@deepseek-ai/dsh-workspace'
 import type { SessionStore } from '@deepseek-ai/dsh-session'
+import { SessionLogOffset } from '@deepseek-ai/dsh-session'
 import type { SessionPersistence } from '@deepseek-ai/dsh-session-persistence'
 import type { SessionProjectionCache } from '@deepseek-ai/dsh-session-projection-cache'
 import type { SessionTitleService } from '@deepseek-ai/dsh-session-title'
 import z from '@deepseek-ai/schemastery'
-import { settingsNamespace, type SettingsScope } from '@deepseek-ai/dsh-settings'
+import type { SettingsScope } from '@deepseek-ai/dsh-settings'
 
 const BG_PATH = fileURLToPath(new URL('../assets/bg.jpg', import.meta.url))
 const BG_ROUTE = '/plugins/@crack/dsh-archive/bg.jpg'
@@ -190,7 +191,7 @@ async function renameSession(ctx: Context, sessionId: string, rawTitle: string):
     get: (id: string) => unknown
     prepare: (id?: string, options?: unknown) => {
       append: (type: string, data: unknown) => void
-      events: readonly unknown[]
+      snapshotEvents: (fromSeq?: SessionLogOffset) => readonly unknown[]
     }
   }
   const live = sessions.get(sessionId)
@@ -212,7 +213,7 @@ async function renameSession(ctx: Context, sessionId: string, rawTitle: string):
     seedSource: 'persistence',
   })
   session.append('session/title', { title, messageSeqs: [], source: { kind: 'user' } })
-  await persistence.append(sessionId, session.events.slice(inspection.events.length))
+  await persistence.append(sessionId, session.snapshotEvents(SessionLogOffset(inspection.events.length)))
   await cache.write(session)
   return { title }
 }
@@ -348,7 +349,7 @@ function apply(ctx: Context) {
   // settings card automatically (schemastery schema → form). `applies: 'live'`
   // means card edits reach the client immediately via document-updated.
   const settings = ctx.settings.register(
-    settingsNamespace('skin'),
+    'skin',
     SKIN_SETTINGS_SCHEMA,
     { applies: 'live' },
   )
