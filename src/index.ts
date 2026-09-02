@@ -238,7 +238,11 @@ async function listArchived(ctx: Context): Promise<{
     list: () => Promise<Array<{ id: unknown; cwd?: string; createdAt?: number }>>
   }
   const cache = ctx.sessionProjectionCache as unknown as {
-    cachedSnapshot: (meta: unknown) => {
+    cachedSnapshot: (
+      meta: unknown,
+      inheritedEventCount: SessionLogOffset,
+      keys?: readonly string[],
+    ) => {
       values?: { title?: string | null; sessionListMetadata?: { lastPromptAt?: number | null } }
     } | undefined
   }
@@ -247,7 +251,7 @@ async function listArchived(ctx: Context): Promise<{
   const byId = new Map(headers.map((h) => [String(h.id), h]))
   const makeItem = (id: string): ArchivedSession => {
     const header = byId.get(id)
-    const snapshot = header ? cache.cachedSnapshot(header)?.values : undefined
+    const snapshot = header ? cache.cachedSnapshot(header, SessionLogOffset(0))?.values : undefined
     const projected = snapshot?.title
     const cwd = header?.cwd
     const title =
