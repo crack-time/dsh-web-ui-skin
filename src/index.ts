@@ -48,7 +48,7 @@ const SKIN_SETTINGS_SCHEMA = z.object({
   archiveButton: z.boolean().default(true),
 })
 
-/** Required services: the web route registry, the workspace registry, session persistence. */
+/** Required services: the web route registry, the workspace registry, session persistence, its projection cache. */
 const inject = ['webServer', 'workspaceRegistry', 'sessionPersistence', 'sessionProjectionCache', 'sessions', 'sessionTitle', 'settings']
 
 function sendJson(res: ServerResponse, status: number, body: unknown): void {
@@ -170,6 +170,21 @@ async function deleteSession(ctx: Context, sessionId: string): Promise<void> {
     setState: (state: unknown) => Promise<void>
   }
   await registry.indexHeaders(await persistence.list())
+  // Drop the session's projection-cache record too (title / token stats /
+  // session-list metadata), so a deleted session doesn't leave its derived
+  // snapshot behind in session_projcache. The projection cache exposes no
+  // public delete — the storage-domain table it owns has one, reached the
+  // same way the rest of this host half pokes the private surface.
+  const projTable = (
+    ctx.sessionProjectionCache as unknown as { table?: { delete: (id: string) => Promise<unknown> } }
+  ).table
+  if (projTable?.delete) {
+    try {
+      await projTable.delete(sessionId)
+    } catch (error) {
+      ctx.logger.warn(`session projection cache: delete for "${sessionId}" failed (cache stays stale): ${String(error)}`)
+    }
+  }
   await registry.enqueueOperation(async () => {
     const state = registry.requireState()
     if (state.archivedSessionIds.includes(sessionId)) {
