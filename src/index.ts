@@ -11,8 +11,8 @@
  *    the same private surface archiveSession itself uses; TS privacy is
  *    compile-time only).
  */
-import { readFile, unlink } from 'node:fs/promises'
-import { basename } from 'node:path'
+import { readFile, rmdir, unlink } from 'node:fs/promises'
+import { dirname, basename } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import type { Context } from '@deepseek-ai/cordis'
@@ -149,6 +149,17 @@ async function deleteSession(ctx: Context, sessionId: string): Promise<void> {
       }
     }
     await unlink(location.path)
+    // Remove the now-empty session directory shell too, so deleting an
+    // archived session doesn't leave an empty folder behind in
+    // ~/.dsh/sessions/<workspace>/. Ignore ENOENT (already gone) and
+    // ENOTEMPTY (directory still holds other files — leave it alone).
+    const parentDir = dirname(location.path)
+    try {
+      await rmdir(parentDir)
+    } catch (error) {
+      const code = (error as { code?: string })?.code
+      if (code !== 'ENOENT' && code !== 'ENOTEMPTY' && code !== 'ENOTDIR') throw error
+    }
   }
   // Refresh the registry's canonical-cwd header index so workspace accounts
   // (whose getters filter through it) stop listing the deleted session.
